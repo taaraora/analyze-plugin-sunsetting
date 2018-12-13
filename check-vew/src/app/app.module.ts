@@ -1,18 +1,27 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import {Injector, NgModule} from '@angular/core';
 
-import { AppComponent } from './app.component';
 import { CheckViewComponentComponent } from './check-view-component/check-view-component.component';
+import {createCustomElement} from "@angular/elements";
 
 @NgModule({
   declarations: [
-    AppComponent,
     CheckViewComponentComponent
   ],
   imports: [
     BrowserModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  entryComponents: [
+    CheckViewComponentComponent
+  ]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(private injector: Injector) {
+  }
+
+  ngDoBootstrap() {
+    const nspCheckVewCE = createCustomElement(CheckViewComponentComponent, { injector: this.injector });
+    customElements.define('node-sunsetting-plugin-check-view', nspCheckVewCE);
+  }
+}
