@@ -6,4 +6,4 @@ module.exports = {
     "@angular/platform-browser": "ng.platformBrowser",
     "@angular/elements": "ng.elements"
   }
-}
+};
