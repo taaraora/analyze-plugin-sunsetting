@@ -8,7 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "build:ces": "ng build --prod --output-hashing none --single-bundle true --project check && ng build --prod --output-hashing none --single-bundle true --project settings"
+    "build:ces": "ng build --source-map --prod --output-hashing none --single-bundle true --project check && ng build --source-map --prod --output-hashing none --single-bundle true --project settings"
   },
   "private": true,
   "dependencies": {

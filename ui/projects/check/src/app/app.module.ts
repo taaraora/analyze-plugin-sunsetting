@@ -30,7 +30,7 @@ export class AppModule {
   ngDoBootstrap() {
     const nspSettingsVewCE = createCustomElement(CheckResultComponent, {injector: this.injector});
     //TODO: add web component selector generation mechanism
-    customElements.define("check-result", nspSettingsVewCE);
+    customElements.define("analyze-plugin-sunsetting-check-result-v2-0-0", nspSettingsVewCE);
 
     const content = document.querySelector('head');
     content.dispatchEvent(new CustomEvent('loadingNotifier', {
@@ -42,6 +42,7 @@ export class AppModule {
       },
       bubbles: true
     }));
-    console.log('loadingNotifier emitted main')
+    console.debug(content);
+    console.debug('loadingNotifier emitted from plugin')
   }
 }
