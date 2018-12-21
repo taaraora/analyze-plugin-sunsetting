@@ -10,6 +10,7 @@ export class CheckResultComponent implements AfterViewInit {
 
   @Output('actionSubmit') actionSubmit = new EventEmitter<WebComponentInfo>();
 
+  // event type === check-result
   @Input('checkResult')
   set checkResult(result: string) {
     console.debug('client-a received state at plugin', result);
