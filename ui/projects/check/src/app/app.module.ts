@@ -1,38 +1,40 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {CheckResultComponent} from './check-result/check-result.component';
 import {createCustomElement} from "@angular/elements";
-import {settingsProvider} from "../../../settings/src/app/app.module";
-import {Injector, NgModule} from "@angular/core";
-
-export class ComponentSettings {
-  constructor(public namePrefix: string) {}
-}
-
+import {ApplicationRef, CUSTOM_ELEMENTS_SCHEMA, DoBootstrap, Injector, NgModule} from "@angular/core";
+import { MatCardModule, MatTabsModule, MatExpansionModule, MatIconModule, MatChipsModule } from "@angular/material";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   imports: [
-    BrowserModule
+    CommonModule,
+    BrowserModule,
+    MatCardModule,
+    MatTabsModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatChipsModule,
+    BrowserAnimationsModule
   ],
   declarations: [
     CheckResultComponent
   ],
-  providers: [
-    settingsProvider,
-  ],
+  providers: [],
   entryComponents: [
     CheckResultComponent
   ]
 })
-export class AppModule {
+export class AppModule implements DoBootstrap {
   constructor(private injector: Injector) {
   }
 
-  ngDoBootstrap() {
+  ngDoBootstrap(appRef: ApplicationRef): void {
     const nspSettingsVewCE = createCustomElement(CheckResultComponent, {injector: this.injector});
     //TODO: add web component selector generation mechanism
     customElements.define("analyze-plugin-sunsetting-check-result-v2-0-0", nspSettingsVewCE);
 
-    const content = document.querySelector('head');
+    const content = document.querySelector('head'); //TODO: move bus to document fragment
     content.dispatchEvent(new CustomEvent('loadingNotifier', {
       detail: {
         pluginName: 'analyze-plugin-sunsetting',
@@ -42,7 +44,6 @@ export class AppModule {
       },
       bubbles: true
     }));
-    console.debug(content);
-    console.debug('loadingNotifier emitted from plugin')
+    console.debug('loadingNotifier emitted from plugin app module')
   }
 }

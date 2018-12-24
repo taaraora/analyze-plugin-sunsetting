@@ -1,4 +1,96 @@
-<h1>check-result works!</h1>
-<p>
-  check-result works!
-</p>
+<mat-card class="check-item transparent" *ngIf="check" >
+  <mat-card-title>
+    <div> {{ check.name }}</div>
+    <section class="check-date" [ngClass]="{
+      'green': check.checkStatus == 'GREEN',
+      'yellow': check.checkStatus == 'YELLOW',
+      'red': check.checkStatus == 'RED'
+    }">
+      <div>
+        <div class="status-time"> {{ check.completedAt | date: 'hh:mm:ss' }}</div>
+        <div class="status-time"> {{ check.completedAt | date: 'MMM d, y'}}</div>
+      </div>
+      &nbsp;
+      &nbsp;
+      <div class="icon">
+        <mat-icon [ngSwitch]="check.checkStatus">
+          <span *ngSwitchCase="'RED'">error</span>
+          <span *ngSwitchCase="'YELLOW'">warning</span>
+          <span *ngSwitchCase="'GREEN'">check_circle</span>
+        </mat-icon>
+      </div>
+    </section>
+  </mat-card-title>
+  <br>
+  <!-- TODO: remove harcode -->
+
+  <div *ngIf="check.description as data">
+    <mat-accordion>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            Details
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="scrollable-area">
+          <ng-container>
+            <table>
+              <tr>
+                <th>Region/Zone</th>
+                <th>Instance ID</th>
+                <th>RAM requested (GIB)</th>
+                <th>RAM not requested (GIB)</th>
+                <th>Total RAM (GIB)</th>
+                <th>Price per day (USD) </th>
+                <th>Recommended to sunset</th>
+              </tr>
+
+              <tr *ngFor="let node of data">
+                <td>
+                  {{ node.kube.region }}
+                </td>
+                <td>
+                  {{ node.cloudProvider.instanceId }}
+                </td>
+                <td>
+                  {{ node.kube.memoryRequests / 1000000000 | number }}
+                </td>
+                <td>
+                  {{ (node.kube.allocatableMemory - node.kube.memoryRequests) / 1000000000 | number }}
+                </td>
+                <td>
+                  {{ node.kube.allocatableMemory / 1000000000 | number }}
+                </td>
+                <td>
+                  {{ node.price.valuePerUnit * 24 | number }}
+                </td>
+                <td>
+                  {{node.kube.isRecommendedToSunset ? 'Yes' : 'No'}}
+                </td>
+              </tr>
+            </table>
+          </ng-container>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+  </div>
+
+
+  <mat-tab-group>
+    <mat-tab *ngFor="let check of check.possibleActions as action">
+      <ng-template mat-tab-label>
+        {{ check.name }}
+      </ng-template>
+      <div class="description">
+        {{ check.description }}
+      </div>
+      <mat-chip-list class="action">
+        <mat-chip class="red">RUN</mat-chip>
+      </mat-chip-list>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</mat-card>
+

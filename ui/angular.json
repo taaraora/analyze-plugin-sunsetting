@@ -32,9 +32,6 @@
             "scripts": [
               {
                 "input": "node_modules/document-register-element/build/document-register-element.js"
-              },
-              {
-                "input": "node_modules/document-register-element/build/document-register-element.js"
               }
             ]
           },
@@ -196,7 +193,10 @@
         "serve": {
           "builder": "ngx-build-plus:dev-server",
           "options": {
-            "browserTarget": "settings:build"
+            "browserTarget": "settings:build",
+            "styles": [
+              "projects/settings/src/styles.css"
+            ]
           },
           "configurations": {
             "production": {
@@ -261,7 +261,7 @@
               "projects/check/src/assets"
             ],
             "styles": [
-              "projects/check/src/styles.css"
+              "projects/check/src/styles.scss"
             ],
             "scripts": []
           },
@@ -317,7 +317,7 @@
             "tsConfig": "projects/check/tsconfig.spec.json",
             "karmaConfig": "projects/check/karma.conf.js",
             "styles": [
-              "projects/check/src/styles.css"
+              "projects/check/src/styles.scss"
             ],
             "scripts": [],
             "assets": [

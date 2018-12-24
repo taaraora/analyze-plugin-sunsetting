@@ -1,10 +1,11 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
 
 @Component({
+  // it going to be generated while web component registering step
   // selector: 'app-check-result',
   templateUrl: './check-result.component.html',
-  styleUrls: ['./check-result.component.css'],
-  encapsulation: ViewEncapsulation.Emulated
+  styleUrls: ['./check-result.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CheckResultComponent implements AfterViewInit {
 
@@ -12,9 +13,12 @@ export class CheckResultComponent implements AfterViewInit {
 
   // event type === check-result
   @Input('checkResult')
-  set checkResult(result: string) {
-    console.debug('client-a received state at plugin', result);
-  }
+  set checkResult(checkResult: string){
+    this.check = JSON.parse(checkResult);
+    console.info(this.check);
+  } // TODO: add model
+
+  check: any;
 
   constructor() { }
 
