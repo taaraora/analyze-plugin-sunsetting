@@ -1,19 +1,19 @@
-<mat-card class="check-item transparent" *ngIf="check" >
+<mat-card class="check-item transparent" *ngIf="currentCheck" >
   <mat-card-title>
-    <div> {{ check.name }}</div>
+    <div> {{ currentCheck.name }}</div>
     <section class="check-date" [ngClass]="{
-      'green': check.checkStatus == 'GREEN',
-      'yellow': check.checkStatus == 'YELLOW',
-      'red': check.checkStatus == 'RED'
+      'green': currentCheck.checkStatus == 'GREEN',
+      'yellow': currentCheck.checkStatus == 'YELLOW',
+      'red': currentCheck.checkStatus == 'RED'
     }">
       <div>
-        <div class="status-time"> {{ check.completedAt | date: 'hh:mm:ss' }}</div>
-        <div class="status-time"> {{ check.completedAt | date: 'MMM d, y'}}</div>
+        <div class="status-time"> {{ currentCheck.completedAt | date: 'hh:mm:ss' }}</div>
+        <div class="status-time"> {{ currentCheck.completedAt | date: 'MMM d, y'}}</div>
       </div>
       &nbsp;
       &nbsp;
       <div class="icon">
-        <mat-icon [ngSwitch]="check.checkStatus">
+        <mat-icon [ngSwitch]="currentCheck.checkStatus">
           <span *ngSwitchCase="'RED'">error</span>
           <span *ngSwitchCase="'YELLOW'">warning</span>
           <span *ngSwitchCase="'GREEN'">check_circle</span>
@@ -22,9 +22,8 @@
     </section>
   </mat-card-title>
   <br>
-  <!-- TODO: remove harcode -->
 
-  <div *ngIf="check.description as data">
+  <div *ngIf="currentCheck.description as data">
     <mat-accordion>
       <mat-expansion-panel>
         <mat-expansion-panel-header>
@@ -78,12 +77,12 @@
 
 
   <mat-tab-group>
-    <mat-tab *ngFor="let check of check.possibleActions as action">
+    <mat-tab *ngFor="let check of currentCheck.possibleActions as action">
       <ng-template mat-tab-label>
-        {{ check.name }}
+        {{ currentCheck.name }}
       </ng-template>
       <div class="description">
-        {{ check.description }}
+        {{ currentCheck.description }}
       </div>
       <mat-chip-list class="action">
         <mat-chip class="red">RUN</mat-chip>

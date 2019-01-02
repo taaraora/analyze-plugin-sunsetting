@@ -1,4 +1,5 @@
-import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, Output, ViewEncapsulation} from '@angular/core';
+import {CheckResult, WebComponentInfo} from "../models/models";
 
 @Component({
   // it going to be generated while web component registering step
@@ -14,33 +15,25 @@ export class CheckResultComponent implements AfterViewInit {
   // event type === check-result
   @Input('checkResult')
   set checkResult(checkResult: string){
-    this.check = JSON.parse(checkResult);
-    console.info(this.check);
-  } // TODO: add model
+    this.currentCheck = JSON.parse(checkResult);
+    console.info(this.currentCheck);
+  }
 
-  check: any;
+  private currentCheck: CheckResult;
 
   constructor() { }
 
   ngAfterViewInit(): void {
     setTimeout( () => {
-      this.actionSubmit.emit(new class implements WebComponentInfo {
-        pluginName: 'analyze-plugin-sunsetting';
-        pluginVersion: 'v2.0.0';
-        webComponentName: 'check-result';
-        selector: 'analyze-plugin-sunsetting-check-result-v2-0-0';
+      this.actionSubmit.emit( {
+        pluginName: 'analyze-plugin-sunsetting',
+        pluginVersion: 'v2.0.0',
+        webComponentName: 'check-result',
+        selector: 'analyze-plugin-sunsetting-check-result-v2-0-0',
       });
       console.log('loadingNotifier emitted from plugin')
     }, 2000);
   }
 
 
-}
-
-
-export interface WebComponentInfo {
-  selector: string;
-  webComponentName: string;
-  pluginName: string;
-  pluginVersion: string;
 }
