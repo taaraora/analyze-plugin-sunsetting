@@ -1,7 +1,8 @@
-package sunsetting
+package main
 
 import (
 	"encoding/json"
+	"github.com/supergiant/analyze-plugin-sunsetting"
 	"strings"
 
 	"github.com/golang/protobuf/ptypes/any"
@@ -9,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 
 	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
 	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider/aws"
@@ -50,11 +50,11 @@ var checkResult = &proto.CheckResult{
 	},
 }
 
-func NewPlugin() proto.PluginClient {
+func NewPlugin() proto.PluginServer {
 	return &plugin{}
 }
 
-func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest, opts ...grpc.CallOption) (*proto.CheckResponse, error) {
+func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest) (*proto.CheckResponse, error) {
 	var nodeResourceRequirements, err = u.kubeClient.GetNodeResourceRequirements()
 	if err != nil {
 		u.logger.Errorf("unable to get nodeResourceRequirements, %v", err)
@@ -107,8 +107,8 @@ func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest, opts ...grpc
 	//	return nil, errors.Wrap(err, "failed to describe ec2 instances")
 	//}
 
-	var unsortedEntries []*InstanceEntry
-	var result []InstanceEntry
+	var unsortedEntries []*sunsetting.InstanceEntry
+	var result []sunsetting.InstanceEntry
 
 	// create InstanceEntries by combining nodeResourceRequirements with ec2 instance type and price
 	for InstanceID, computeInstance := range computeInstances {
@@ -132,12 +132,12 @@ func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest, opts ...grpc
 			}
 		}
 
-		result = append(result, InstanceEntry{
+		result = append(result, sunsetting.InstanceEntry{
 			CloudProvider: computeInstance,
 			Price:         instanceTypePrice,
 			WorkerNode:    *kubeNode,
 		})
-		unsortedEntries = append(unsortedEntries, &InstanceEntry{
+		unsortedEntries = append(unsortedEntries, &sunsetting.InstanceEntry{
 			CloudProvider: computeInstance,
 			Price:         instanceTypePrice,
 			WorkerNode:    *kubeNode,
@@ -145,9 +145,9 @@ func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest, opts ...grpc
 	}
 
 	//TODO: double check logic, is it really needed?
-	var instancesToSunset = CheckEachPodOneByOne(unsortedEntries)
+	var instancesToSunset = sunsetting.CheckEachPodOneByOne(unsortedEntries)
 	if len(instancesToSunset) == 0 {
-		instancesToSunset = CheckAllPodsAtATime(unsortedEntries)
+		instancesToSunset = sunsetting.CheckAllPodsAtATime(unsortedEntries)
 	}
 
 	// mark nodes selected node with IsRecommendedToSunset == true
@@ -175,7 +175,7 @@ func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest, opts ...grpc
 	return &proto.CheckResponse{Result: checkResult}, nil
 }
 
-func (u *plugin) Configure(ctx context.Context, pluginConfig *proto.PluginConfig, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (u *plugin) Configure(ctx context.Context, pluginConfig *proto.PluginConfig) (*empty.Empty, error) {
 	//TODO: add here config validation in future
 	var logger =  logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
@@ -210,7 +210,7 @@ func (u *plugin) Configure(ctx context.Context, pluginConfig *proto.PluginConfig
 	return &empty.Empty{}, nil
 }
 
-func (u *plugin) Info(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*proto.PluginInfo, error) {
+func (u *plugin) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, error) {
 	return &proto.PluginInfo{
 		Id:          "supergiant-underutilized-nodes-plugin",
 		Version:     "v0.0.1",
@@ -219,10 +219,10 @@ func (u *plugin) Info(ctx context.Context, in *empty.Empty, opts ...grpc.CallOpt
 	}, nil
 }
 
-func (u *plugin) Stop(ctx context.Context, in *proto.Stop_Request, opts ...grpc.CallOption) (*proto.Stop_Response, error) {
+func (u *plugin) Stop(ctx context.Context, in *proto.Stop_Request) (*proto.Stop_Response, error) {
 	panic("implement me")
 }
 
-func (u *plugin) Action(ctx context.Context, in *proto.ActionRequest, opts ...grpc.CallOption) (*proto.ActionResponse, error) {
+func (u *plugin) Action(ctx context.Context, in *proto.ActionRequest) (*proto.ActionResponse, error) {
 	panic("implement me")
 }
