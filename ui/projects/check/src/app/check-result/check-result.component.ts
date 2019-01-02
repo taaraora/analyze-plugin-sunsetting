@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, EventEmitter, Input, Output, ViewEncapsulation} from '@angular/core';
-import {CheckResult, WebComponentInfo} from "../models/models";
+import {CheckResult, NodeCheckResult, WebComponentInfo} from "../models/models";
 
 @Component({
   // it going to be generated while web component registering step
@@ -16,10 +16,11 @@ export class CheckResultComponent implements AfterViewInit {
   @Input('checkResult')
   set checkResult(checkResult: string){
     this.currentCheck = JSON.parse(checkResult);
-    console.info(this.currentCheck);
+    let description: Array<NodeCheckResult> = JSON.parse(this.currentCheck.description as string);
+    this.currentCheck.description = description;
   }
 
-  private currentCheck: CheckResult;
+  public currentCheck: CheckResult;
 
   constructor() { }
 
