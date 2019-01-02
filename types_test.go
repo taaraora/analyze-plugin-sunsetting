@@ -1,11 +1,11 @@
 package sunsetting
 
 import (
+	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
+	"github.com/supergiant/analyze-plugin-sunsetting/kube"
 	"math"
 	"testing"
 
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/cloudprovider"
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/kube"
 )
 
 var fixture = func() *InstanceEntry {

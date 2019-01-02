@@ -1,11 +1,9 @@
 package sunsetting
 
 import (
+	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
+	"github.com/supergiant/analyze-plugin-sunsetting/kube"
 	"sort"
-
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/cloudprovider"
-
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/kube"
 )
 
 // InstanceEntry struct represents Kelly's "instances to sunset" table entry,

@@ -11,10 +11,11 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/cloudprovider"
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/cloudprovider/aws"
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/kube"
-	"github.com/supergiant/analyze/builtin/plugins/sunsetting/nodeagent"
+	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
+	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider/aws"
+	"github.com/supergiant/analyze-plugin-sunsetting/kube"
+	"github.com/supergiant/analyze-plugin-sunsetting/nodeagent"
+
 	"github.com/supergiant/analyze/pkg/plugin/proto"
 )
 
