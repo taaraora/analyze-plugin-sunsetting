@@ -7,14 +7,14 @@ metadata:
     helm.sh/chart: {{ include "analyze-plugin-sunsetting.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/version: {{ .Chart.appVersion }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
     app.kubernetes.io/component: analyze-plugin-sunsetting
     app.kubernetes.io/part-of: analyze
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.service.internalPort }}
+      targetPort: {{ .Values.service.externalPort }}
       protocol: TCP
       name: http
   selector:
