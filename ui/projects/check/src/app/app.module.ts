@@ -42,7 +42,7 @@ export class AppModule implements DoBootstrap {
         webComponentName: 'check-result',
         selector: 'analyze-plugin-sunsetting-check-result-v2-0-0',
       },
-      bubbles: true
+      bubbles: false
     }));
     console.debug('loadingNotifier emitted from plugin app module')
   }

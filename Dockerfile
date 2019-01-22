@@ -1,4 +1,4 @@
-FROM golang:1.11.1 as back_builder
+FROM golang:1.11.4 as back_builder
 
 ARG ARCH=amd64
 ARG GO111MODULE=on

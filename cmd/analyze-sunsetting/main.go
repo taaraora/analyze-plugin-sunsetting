@@ -27,7 +27,7 @@ func main()  {
 	command.PersistentFlags().StringP(
 		"api-port",
 		"p",
-		"9999",
+		"9999", //TODO: make it configurable using configmap
 		"tcp port where sunsetting plugin grpc server is serving")
 
 	if err := command.Execute(); err != nil {
@@ -43,7 +43,7 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 	}
 
 	logger := logrus.New()
-	logger.SetLevel(logrus.DebugLevel)
+	logger.SetLevel(logrus.DebugLevel) //TODO: make it configurable
 	var mainLogger = logger.WithField("app", "sunsetting-plugin")
 
 	listener, err := net.Listen("tcp", ":"+apiPort)
@@ -59,16 +59,11 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 			grpc_logrus.UnaryServerInterceptor(grpcLogger),
 			grpc_recovery.UnaryServerInterceptor(),
 		)),
-		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
-			grpc_recovery.StreamServerInterceptor(),
-			grpc_ctxtags.StreamServerInterceptor(),
-			grpc_logrus.StreamServerInterceptor(grpcLogger),
-		)),
 	)
 
 	reflection.Register(grpcServer)
 
-	var pluginService = NewPlugin()
+	var pluginService = NewServer(mainLogger.WithField("component", "plugin_server"))
 
 	proto.RegisterPluginServer(grpcServer, pluginService)
 

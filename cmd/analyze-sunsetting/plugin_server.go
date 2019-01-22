@@ -19,7 +19,7 @@ import (
 	"github.com/supergiant/analyze/pkg/plugin/proto"
 )
 
-type plugin struct {
+type server struct {
 	config                 *proto.PluginConfig
 	nodeAgentClient        *nodeagent.Client
 	awsClient              *aws.Client
@@ -50,11 +50,13 @@ var checkResult = &proto.CheckResult{
 	},
 }
 
-func NewPlugin() proto.PluginServer {
-	return &plugin{}
+func NewServer(logger logrus.FieldLogger) proto.PluginServer {
+	return &server{
+		logger:logger,
+	}
 }
 
-func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest) (*proto.CheckResponse, error) {
+func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.CheckResponse, error) {
 	var nodeResourceRequirements, err = u.kubeClient.GetNodeResourceRequirements()
 	if err != nil {
 		u.logger.Errorf("unable to get nodeResourceRequirements, %v", err)
@@ -100,12 +102,6 @@ func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 			InstanceType: instanceType,
 		}
 	}
-
-	//computeInstances, err := u.awsClient.GetComputeInstances()
-	//if err != nil {
-	//	fmt.Printf("failed to describe ec2 instances, %v", err)
-	//	return nil, errors.Wrap(err, "failed to describe ec2 instances")
-	//}
 
 	var unsortedEntries []*sunsetting.InstanceEntry
 	var result []sunsetting.InstanceEntry
@@ -175,12 +171,7 @@ func (u *plugin) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 	return &proto.CheckResponse{Result: checkResult}, nil
 }
 
-func (u *plugin) Configure(ctx context.Context, pluginConfig *proto.PluginConfig) (*empty.Empty, error) {
-	//TODO: add here config validation in future
-	var logger =  logrus.New()
-	logger.SetLevel(logrus.DebugLevel)
-	u.logger = logger
-
+func (u *server) Configure(ctx context.Context, pluginConfig *proto.PluginConfig) (*empty.Empty, error) {
 	u.config = pluginConfig
 
 	nodeAgentClient, err := nodeagent.NewClient(logrus.New())
@@ -190,7 +181,7 @@ func (u *plugin) Configure(ctx context.Context, pluginConfig *proto.PluginConfig
 	u.nodeAgentClient = nodeAgentClient
 
 	var awsClientConfig = pluginConfig.GetAwsConfig()
-	awsClient, err := aws.NewClient(awsClientConfig, logger.WithField("component", "awsClient"))
+	awsClient, err := aws.NewClient(awsClientConfig, u.logger.WithField("component", "awsClient"))
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +193,7 @@ func (u *plugin) Configure(ctx context.Context, pluginConfig *proto.PluginConfig
 		return nil, err
 	}
 
-	u.kubeClient, err = kube.NewKubeClient(logger.WithField("component", "kubeClient"))
+	u.kubeClient, err = kube.NewKubeClient(u.logger.WithField("component", "kubeClient"))
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +201,7 @@ func (u *plugin) Configure(ctx context.Context, pluginConfig *proto.PluginConfig
 	return &empty.Empty{}, nil
 }
 
-func (u *plugin) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, error) {
+func (u *server) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, error) {
 	return &proto.PluginInfo{
 		Id:          "supergiant-underutilized-nodes-plugin",
 		Version:     "v0.0.1",
@@ -219,10 +210,10 @@ func (u *plugin) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, 
 	}, nil
 }
 
-func (u *plugin) Stop(ctx context.Context, in *proto.Stop_Request) (*proto.Stop_Response, error) {
+func (u *server) Stop(ctx context.Context, in *proto.Stop_Request) (*proto.Stop_Response, error) {
 	panic("implement me")
 }
 
-func (u *plugin) Action(ctx context.Context, in *proto.ActionRequest) (*proto.ActionResponse, error) {
+func (u *server) Action(ctx context.Context, in *proto.ActionRequest) (*proto.ActionResponse, error) {
 	panic("implement me")
 }

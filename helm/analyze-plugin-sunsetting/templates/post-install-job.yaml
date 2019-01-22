@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "analyze-plugin-sunsetting.fullname" . }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ include "analyze-plugin-sunsetting.name" . }}
+  annotations:
+    "helm.sh/hook": post-install
+spec:
+  template:
+    metadata:
+      name: {{ include "analyze-plugin-sunsetting.fullname" . }}
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ include "analyze-plugin-sunsetting.name" . }}
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: "{{ .Release.Name }} post-install-job"
+          image: "alpine:3.3"
+          command: ["/bin/sleep", "{{ .Values.sleepyTime }}"]
