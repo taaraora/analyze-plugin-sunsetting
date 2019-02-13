@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start:check": "ng serve --project check --prod",
+    "start:check": "ng serve --project check",
     "start:settings": "ng serve --project settings",
     "build": "ng build",
     "test": "ng test",

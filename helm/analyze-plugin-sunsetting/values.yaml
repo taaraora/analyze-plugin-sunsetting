@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: supergiant/analyze-plugin-sunsetting
-  tag: latest
+  tag: b049d02
   pullPolicy: Always
 
 nameOverride: ""

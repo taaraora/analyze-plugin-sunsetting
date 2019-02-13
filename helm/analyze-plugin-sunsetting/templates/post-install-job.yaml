@@ -19,6 +19,9 @@ spec:
     spec:
       restartPolicy: "Never"
       containers:
-        - name: "{{ .Release.Name }} post-install-job"
-          image: "alpine:3.3"
-          command: ["/bin/sleep", "{{ .Values.sleepyTime }}"]
+        - name: "{{ .Release.Name }}-post-install-job"
+          image: "supergiant/analyze-registry-job:2.0.0-beta.2-18-g29e7c59"
+          args: ["remove", "false"]
+          env:
+          - name: PLUGIN_API_ADDRESS
+            value: {{ include "analyze-plugin-sunsetting.fullname" . }}:{{ .Values.service.externalHttpPort }}
