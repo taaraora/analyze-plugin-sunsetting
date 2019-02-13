@@ -1,3 +1,7 @@
 .idea
 node_modules/
 dist/
+asset/check/*
+!asset/check/.gitkeep
+asset/settings/*
+!asset/settings/.gitkeep
