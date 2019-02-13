@@ -36,18 +36,6 @@ var checkResult = &proto.CheckResult{
 		TypeUrl: "io.supergiant.analyze.plugin.requestslimitscheck",
 		Value:   []byte("Resources (CPU/RAM) total capacity and allocatable where checked on nodes of k8s cluster. Results:"),
 	},
-	Actions: []*proto.Action{
-		&proto.Action{
-			ActionId:    "1",
-			Name:        "Dismiss notification",
-			Description: "Dismiss notification, just prevents notification from being shown",
-		},
-		&proto.Action{
-			ActionId:    "2",
-			Name:        "Sunset nodes",
-			Description: "Sunset nodes, makes request to capacity service to remove underutilized nodes.",
-		},
-	},
 }
 
 func NewServer(logger logrus.FieldLogger) proto.PluginServer {
@@ -211,9 +199,5 @@ func (u *server) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, 
 }
 
 func (u *server) Stop(ctx context.Context, in *proto.Stop_Request) (*proto.Stop_Response, error) {
-	panic("implement me")
-}
-
-func (u *server) Action(ctx context.Context, in *proto.ActionRequest) (*proto.ActionResponse, error) {
 	panic("implement me")
 }
