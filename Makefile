@@ -49,9 +49,13 @@ goimports:
 	@$(call GOIMPORTS)
 
 .PHONY: build-image
-build-image:
-	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
+build-image: build
+	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) ./dist -f ./Dockerfile
 	docker tag $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) $(DOCKER_IMAGE_NAME):latest
+
+.PHONY: build
+build:
+	./scripts/build.sh
 
 .PHONY: push
 push:

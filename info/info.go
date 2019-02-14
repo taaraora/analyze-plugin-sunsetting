@@ -7,8 +7,6 @@ var (
 	Branch    string
 	BuildDate string
 	GoVersion string
-
-
 	SettingsComponentEntryPoint string
 	CheckComponentEntryPoint    string
 )
@@ -38,6 +36,10 @@ type PluginInfo struct {
 	// Filled by post-install job
 	ServiceName string `json:"serviceName,omitempty"`
 
+	// entry points for web components
+	SettingsComponentEntryPoint string `json:"settingsComponentEntryPoint,omitempty"`
+	CheckComponentEntryPoint    string `json:"checkComponentEntryPoint,omitempty"`
+
 	// plugin status
 	Status string `json:"status,omitempty"`
 
@@ -58,6 +60,8 @@ func Info() PluginInfo {
 		Name:          "Supergiant sunsetting plugin",
 		ServiceLabels: nil,
 		ServiceName:   "",
+		SettingsComponentEntryPoint: SettingsComponentEntryPoint,
+		CheckComponentEntryPoint: CheckComponentEntryPoint,
 		Status:        "OK",
 		Version:       Version,
 		Revision:      Revision,
