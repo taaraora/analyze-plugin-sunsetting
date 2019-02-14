@@ -49,7 +49,7 @@ goimports:
 	@$(call GOIMPORTS)
 
 .PHONY: build-image
-build-image: gen-assets build
+build-image: build-ui gen-assets build
 	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) ./dist -f ./Dockerfile
 	docker tag $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) $(DOCKER_IMAGE_NAME):latest
 
