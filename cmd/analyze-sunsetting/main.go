@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/supergiant/analyze-plugin-sunsetting/asset"
 	"github.com/supergiant/analyze-plugin-sunsetting/cmd/analyze-sunsetting/server"
 	"github.com/supergiant/analyze-plugin-sunsetting/info"
 	"github.com/supergiant/analyze/pkg/plugin/proto"
@@ -18,6 +19,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 )
 
 
@@ -78,15 +80,23 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 
 	mainLogger.Infof("grpc-api-port: %v, rest-api-port: %v", grpcApiPort, restApiPort)
 
-	//TODO: for now it returns only info about registered plugin, but also need to serve bundles
+	//TODO: extract to separate component
 	handler := func (w http.ResponseWriter, r *http.Request) {
-		pi := info.Info()
-		b, _ := json.Marshal(&pi)
-		w.WriteHeader(http.StatusOK)
-		w.Write(b)
+		mainLogger.Warnf("%s", r.URL.Path)
+		if strings.HasPrefix(r.URL.Path, "/api/v1/info") {
+			pi := info.Info()
+			b, _ := json.Marshal(&pi)
+			w.WriteHeader(http.StatusOK)
+			w.Write(b)
+			return
+		}
+
+		fs := http.FileServer(asset.Assets)
+		fs.ServeHTTP(w, r)
+		return
 	}
 
-	http.HandleFunc("/api/v1/info", handler)
+	http.HandleFunc("/", handler)
 	go func() {
 		mainLogger.Fatal(http.ListenAndServe(":" + restApiPort, nil))
 	}()

@@ -5,3 +5,4 @@ asset/check/*
 !asset/check/.gitkeep
 asset/settings/*
 !asset/settings/.gitkeep
+asset/assets_vfsdata.go

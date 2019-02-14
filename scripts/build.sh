@@ -34,5 +34,3 @@ echo "Building $PLUGIN_NAME with -ldflags $ldflags"
 
 
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o ./dist/analyze-sunsetting -a -ldflags "${ldflags}" ./cmd/analyze-sunsetting
-
-exit 0
