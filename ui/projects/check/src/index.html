@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Check</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+</head>
+<body>
+
+<analyze-plugin-sunsetting-check-result-v2-0-0></analyze-plugin-sunsetting-check-result-v2-0-0>
+<script>
+  // set dummy model for convenience while local development
+  let element = document.querySelector('analyze-plugin-sunsetting-check-result-v2-0-0');
+  element.setAttribute('check-result', JSON.stringify({
+    checkStatus: "YELLOW",
+    completedAt: "2019-01-02T10:05:22.156Z",
+    description: '[{"cloudProvider":{"instanceId":"i-04236b91e4a84b1fb","instanceType":"m4.large"},"price":{"instanceType":"m4.large","memory":"8 GiB","vcpu":"2","unit":"Hrs","currency":"USD","valuePerUnit":"0.1000000000","usageType":"BoxUsage:m4.large","tenancy":"Shared"},"kube":{"allocatableCpu":2000,"allocatableMemory":8265089024,"cpuLimits":0,"cpuRequests":200,"fractionCpuLimits":0,"fractionCpuRequests":10,"fractionMemoryLimits":4.6941190696604895,"fractionMemoryRequests":1.522416995565564,"instanceId":"i-04236b91e4a84b1fb","isRecommendedToSunset":true,"memoryLimits":387973120,"memoryRequests":125829120,"name":"ip-172-31-22-141.us-west-1.compute.internal","podsResourceRequirements":[{"podName":"anz-dmts-analyze-nodeagent-996df","cpuRequests":100,"cpuLimits":0,"memoryRequests":52428800,"memoryLimits":209715200},{"podName":"prometheus-operator-prometheus-node-exporter-sn9m4","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"coredns-675d779485-4wgtm","cpuRequests":100,"cpuLimits":0,"memoryRequests":73400320,"memoryLimits":178257920},{"podName":"kube-apiserver-ip-172-31-22-141.us-west-1.compute.internal","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"kube-controller-manager-ip-172-31-22-141.us-west-1.compute.internal","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"kube-proxy-ip-172-31-22-141.us-west-1.compute.internal","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"kube-scheduler-ip-172-31-22-141.us-west-1.compute.internal","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0}],"region":"us-west-1c"}},{"cloudProvider":{"instanceId":"i-000a28479892aa496","instanceType":"m4.large"},"price":{"instanceType":"m4.large","memory":"8 GiB","vcpu":"2","unit":"Hrs","currency":"USD","valuePerUnit":"0.1000000000","usageType":"BoxUsage:m4.large","tenancy":"Shared"},"kube":{"allocatableCpu":2000,"allocatableMemory":8265089024,"cpuLimits":75,"cpuRequests":175,"fractionCpuLimits":3.75,"fractionCpuRequests":8.75,"fractionMemoryLimits":3.2985701570587223,"fractionMemoryRequests":1.395548912601767,"instanceId":"i-000a28479892aa496","isRecommendedToSunset":false,"memoryLimits":272629760,"memoryRequests":115343360,"name":"ip-172-31-27-21.us-west-1.compute.internal","podsResourceRequirements":[{"podName":"anz-dmts-analyze-nodeagent-8cqrt","cpuRequests":100,"cpuLimits":0,"memoryRequests":52428800,"memoryLimits":209715200},{"podName":"prometheus-operator-grafana-7654f69d89-kz6x2","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"prometheus-operator-prometheus-node-exporter-j99st","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"prometheus-prometheus-operator-prometheus-0","cpuRequests":75,"cpuLimits":75,"memoryRequests":62914560,"memoryLimits":62914560},{"podName":"kube-proxy-ip-172-31-27-21.us-west-1.compute.internal","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0}],"region":"us-west-1c"}},{"cloudProvider":{"instanceId":"i-039890578853480b2","instanceType":"m4.large"},"price":{"instanceType":"m4.large","memory":"8 GiB","vcpu":"2","unit":"Hrs","currency":"USD","valuePerUnit":"0.1000000000","usageType":"BoxUsage:m4.large","tenancy":"Shared"},"kube":{"allocatableCpu":2000,"allocatableMemory":8265089024,"cpuLimits":50,"cpuRequests":400,"fractionCpuLimits":2.5,"fractionCpuRequests":20,"fractionMemoryLimits":2.664229742239737,"fractionMemoryRequests":6.395935463792048,"instanceId":"i-039890578853480b2","isRecommendedToSunset":true,"memoryLimits":220200960,"memoryRequests":528629760,"name":"ip-172-31-28-109.us-west-1.compute.internal","podsResourceRequirements":[{"podName":"alertmanager-prometheus-operator-alertmanager-0","cpuRequests":50,"cpuLimits":50,"memoryRequests":220200960,"memoryLimits":10485760},{"podName":"anz-dmts-analyze-nodeagent-5d4bq","cpuRequests":100,"cpuLimits":0,"memoryRequests":52428800,"memoryLimits":209715200},{"podName":"etcd-5c8f5766df-d5kjd","cpuRequests":250,"cpuLimits":0,"memoryRequests":256000000,"memoryLimits":0},{"podName":"prometheus-operator-operator-74cc65c6d8-wzztz","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"prometheus-operator-prometheus-node-exporter-vnrh9","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"kube-proxy-ip-172-31-28-109.us-west-1.compute.internal","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"tiller-deploy-7f4974b9c8-ctsrp","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0}],"region":"us-west-1c"}},{"cloudProvider":{"instanceId":"i-0a08d19d46e5a5a22","instanceType":"m4.large"},"price":{"instanceType":"m4.large","memory":"8 GiB","vcpu":"2","unit":"Hrs","currency":"USD","valuePerUnit":"0.1000000000","usageType":"BoxUsage:m4.large","tenancy":"Shared"},"kube":{"allocatableCpu":2000,"allocatableMemory":8265089024,"cpuLimits":0,"cpuRequests":400,"fractionCpuLimits":0,"fractionCpuRequests":20,"fractionMemoryLimits":2.5373616592759403,"fractionMemoryRequests":3.8821633386921883,"instanceId":"i-0a08d19d46e5a5a22","isRecommendedToSunset":false,"memoryLimits":209715200,"memoryRequests":320864256,"name":"ip-172-31-29-56.us-west-1.compute.internal","podsResourceRequirements":[{"podName":"anz-dmts-analyze-7bbc796c79-2mh8p","cpuRequests":300,"cpuLimits":0,"memoryRequests":268435456,"memoryLimits":0},{"podName":"anz-dmts-analyze-nodeagent-lhp2q","cpuRequests":100,"cpuLimits":0,"memoryRequests":52428800,"memoryLimits":209715200},{"podName":"prometheus-operator-kube-state-metrics-cdf84dd85-9nt7t","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"prometheus-operator-prometheus-node-exporter-8hxpg","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0},{"podName":"kube-proxy-ip-172-31-29-56.us-west-1.compute.internal","cpuRequests":0,"cpuLimits":0,"memoryRequests":0,"memoryLimits":0}],"region":"us-west-1c"}}]',
+    executionStatus: "OK",
+    id: "Underutilized nodes sunsetting Check",
+    name: "Underutilized nodes sunsetting Check",
+    possibleActions: [
+      {
+        description: "Dismiss notification, just prevents notification from being shown",
+        id: "1",
+        name: "Dismiss notification"
+      },
+      {
+        description: "Sunset nodes, makes request to capacity service to remove underutilized nodes.",
+        id: "2",
+        name: "Sunset nodes"
+      }
+    ]
+  }));
+</script>
+
+</body>
+</html>

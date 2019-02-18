@@ -1,0 +1,13 @@
+{
+  "name": "analyze-plugin-sunsetting-settings-component",
+  "version": "2.0.0",
+  "main": "ap-sunsetting-settings.bundle.js",
+  "module": "ap-sunsetting-settings.module.js",
+  "jsnext:main": "ap-sunsetting-settings.module.js",
+  "types": "ap-sunsetting-settings.module.d.ts",
+  "peerDependencies": {
+    "@angular/common": "~7.1.0",
+    "@angular/core": "~7.1.0",
+    "@angular/elements": "^7.1.3"
+  }
+}
