@@ -13,8 +13,8 @@ PLUGIN_NAME="analyze-plugin-sunsetting"
 REPO_PATH="github.com/supergiant/analyze-plugin-sunsetting"
 
 
-settings_component_entry_point="analyze-plugin-sunsetting-settings-main.js"
-check_component_entry_point="analyze-plugin-sunsetting-check-main.js"
+settings_component_entry_point="/settings/analyze-plugin-sunsetting-settings-main.js"
+check_component_entry_point="/check/analyze-plugin-sunsetting-check-main.js"
 version=$( git describe --tags --dirty --abbrev=14 | sed -E 's/-([0-9]+)-g/.\1+/' )
 revision=$( git rev-parse --short HEAD 2> /dev/null || echo 'unknown' )
 branch=$( git rev-parse --abbrev-ref HEAD 2> /dev/null || echo 'unknown' )
