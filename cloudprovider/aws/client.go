@@ -2,6 +2,7 @@ package aws
 
 import (
 	"encoding/json"
+	"github.com/aws/aws-sdk-go-v2/aws/ec2metadata"
 	"github.com/sirupsen/logrus"
 	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
 	"io/ioutil"
@@ -29,18 +30,33 @@ type Client struct {
 //NewClient creates aws client
 func NewClient(clientConfig *proto.AwsConfig, logger logrus.FieldLogger) (*Client, error) {
 	var region = clientConfig.GetRegion()
-	var c = &Client{
-		logger:logger,
-		region: region,
-	}
 	cfg, err := external.LoadDefaultAWSConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to load AWS SDK config")
 	}
 
-	cfg.Region = region
+	var c = &Client{
+		logger:logger,
+		region: cfg.Region,
+	}
+
+	if cfg.Region == "" && region == "" {
+		ec2Metadata := ec2metadata.New(cfg)
+		r, err :=  ec2Metadata.Region()
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to load AWS region")
+		}
+		region = r
+	}
+
+	if region != ""{
+		cfg.Region = region
+		c.region = region
+	}
+
 	c.ec2Service = ec2.New(cfg)
 
+	c.logger.Infof("defaultRegion: '%s', configRegion '%s'", cfg.Region, region)
 	return c, nil
 }
 
@@ -50,10 +66,12 @@ func (c *Client) GetPrices() (map[string][]cloudprovider.ProductPrice, error) {
 	var offeringsURI = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/" + serviceCode + "/current/" + c.region + "/index.json"
 	offeringsRaw, err :=  http.Get(offeringsURI)
 	if err != nil {
+		c.logger.Errorf("failed fetch data from uri: %s", offeringsURI)
 		return nil, errors.Wrap(err, "can't download prices")
 	}
 	defer offeringsRaw.Body.Close()
 	if offeringsRaw.StatusCode != http.StatusOK {
+		c.logger.Errorf("failed fetch data from uri: %s", offeringsURI)
 		return nil, errors.Errorf("can't download prices, server returned %s", offeringsRaw.Status)
 	}
 

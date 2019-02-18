@@ -34,7 +34,7 @@ type PluginInfo struct {
 
 	// name of k8s service which is front of plugin deployment
 	// Filled by post-install job
-	ServiceName string `json:"serviceName,omitempty"`
+	ServiceEndpoint string `json:"serviceEndpoint,omitempty"`
 
 	// entry points for web components
 	SettingsComponentEntryPoint string `json:"settingsComponentEntryPoint,omitempty"`
@@ -59,7 +59,7 @@ func Info() PluginInfo {
 		InstalledAt:   "",
 		Name:          "Supergiant sunsetting plugin",
 		ServiceLabels: nil,
-		ServiceName:   "",
+		ServiceEndpoint:   "",
 		SettingsComponentEntryPoint: SettingsComponentEntryPoint,
 		CheckComponentEntryPoint: CheckComponentEntryPoint,
 		Status:        "OK",

@@ -14,12 +14,14 @@ import (
 	"github.com/supergiant/analyze-plugin-sunsetting/info"
 	"github.com/supergiant/analyze/pkg/plugin/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 
@@ -110,6 +112,13 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 	var grpcLogger = mainLogger.WithField("component", "grpc_server")
 	grpc_logrus.ReplaceGrpcLogger(grpcLogger)
 	grpcServer := grpc.NewServer(
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle:     12 * time.Hour,
+			MaxConnectionAge:      0,
+			MaxConnectionAgeGrace: 0,
+			Time:                  5 * time.Minute,
+			Timeout:               60 * time.Minute,
+		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_logrus.UnaryServerInterceptor(grpcLogger),

@@ -2,8 +2,10 @@ package server
 
 import (
 	"encoding/json"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/supergiant/analyze-plugin-sunsetting"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -45,6 +47,8 @@ func NewServer(logger logrus.FieldLogger) proto.PluginServer {
 }
 
 func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.CheckResponse, error) {
+	u.logger.Info("got Check request")
+	defer u.logger.Info("Check request done")
 	var nodeResourceRequirements, err = u.kubeClient.GetNodeResourceRequirements()
 	if err != nil {
 		u.logger.Errorf("unable to get nodeResourceRequirements, %v", err)
@@ -160,6 +164,8 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 }
 
 func (u *server) Configure(ctx context.Context, pluginConfig *proto.PluginConfig) (*empty.Empty, error) {
+	u.logger.Info("got Configure request")
+	defer u.logger.Info("Configure request done")
 	u.config = pluginConfig
 
 	nodeAgentClient, err := nodeagent.NewClient(logrus.New())
@@ -190,11 +196,17 @@ func (u *server) Configure(ctx context.Context, pluginConfig *proto.PluginConfig
 }
 
 func (u *server) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, error) {
+	u.logger.Info("got info request")
+	defer u.logger.Info("info request done")
+
 	return &proto.PluginInfo{
-		Id:          "supergiant-underutilized-nodes-plugin",
-		Version:     "v0.0.1",
-		Name:        "Underutilized nodes sunsetting plugin",
-		Description: "This plugin checks nodes using high intelligent Kelly's approach to find underutilized nodes, than calculates how it is possible to fix that",
+		Id:                          "supergiant-underutilized-nodes-plugin",
+		Version:                     "v0.0.1",
+		Name:                        "Underutilized nodes sunsetting plugin",
+		Description:                 "This plugin checks nodes using high intelligent Kelly's approach to find underutilized nodes, than calculates how it is possible to fix that",
+		DefaultConfig:               &proto.PluginConfig{
+			ExecutionInterval:    ptypes.DurationProto(2 * time.Minute),
+		},
 	}, nil
 }
 

@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: supergiant/analyze-plugin-sunsetting
-  tag: b049d02
+  tag: 0.0.1-5-ge149da2
   pullPolicy: Always
 
 nameOverride: ""
@@ -21,10 +21,10 @@ service:
 resources:
    limits:
     cpu: 100m
-    memory: 128Mi
+    memory: 512Mi
    requests:
     cpu: 100m
-    memory: 128Mi
+    memory: 512Mi
 
 nodeSelector: {}
 
