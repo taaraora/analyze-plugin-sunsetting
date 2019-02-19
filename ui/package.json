@@ -9,11 +9,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "build:webcomponents": "PROJECT=check  npm run build:project &&  PROJECT=settings  npm run build:project",
-    "build:test": "PROJECT=check  npm run build:project",
-    "build:project": "ng build --prod --aot --extractLicenses=true --buildOptimizer true --optimization true --output-hashing none --single-bundle true --project $PROJECT --outputPath=dist/$PROJECT && npm run project:add-prefix",
-    "project:add-prefix": "cd dist/$PROJECT && mv main.js analyze-plugin-sunsetting-$PROJECT-main.js"
-
+    "build:ces": "ng build --source-map --prod --output-hashing none --single-bundle true --project check && ng build --source-map --prod --output-hashing none --single-bundle true --project settings"
   },
   "private": true,
   "dependencies": {

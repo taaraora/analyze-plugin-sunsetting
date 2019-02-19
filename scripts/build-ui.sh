@@ -7,6 +7,5 @@ set -o nounset
 # if any of the commands in pipeline fails, script will exit
 set -o pipefail
 
-cd ./ui && npm run build:webcomponents
 
 exit 0
