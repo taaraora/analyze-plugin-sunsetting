@@ -1,16 +1,19 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, Input } from '@angular/core';
 
 @Component({
   // selector: 'app-plugin-settings',
   templateUrl: './plugin-settings.component.html',
-  styleUrls: ['./plugin-settings.component.css'],
-  encapsulation: ViewEncapsulation.ShadowDom
+  styleUrls: ['./plugin-settings.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class PluginSettingsComponent implements OnInit {
+export class PluginSettingsComponent {
 
-  constructor() { }
-
-  ngOnInit() {
+  @Input('pluginConfig')
+  set setConfig(pluginConfig: string) {
+    this.pluginConfig = JSON.parse(pluginConfig);
   }
 
+  pluginConfig: any;
+
+  constructor() { }
 }

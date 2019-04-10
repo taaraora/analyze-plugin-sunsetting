@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  pluginName: 'analyze-plugin-sunsetting',
+  pluginVersion: 'v2-0-0',
 };
 
 /*

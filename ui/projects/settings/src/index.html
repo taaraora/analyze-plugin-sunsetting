@@ -1,14 +1,30 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Settings</title>
-  <base href="/">
+  <head>
+    <meta charset="utf-8">
+    <title>Settings</title>
+    <base href="/">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <app-root></app-root>
-</body>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+  </head>
+  <body>
+    <analyze-plugin-sunsetting-settings-v2-0-0></analyze-plugin-sunsetting-settings-v2-0-0>
+    <script>
+      // mock data setting, this is done by Analyze Core
+      setTimeout(() => {
+        let el = document.querySelector('analyze-plugin-sunsetting-settings-v2-0-0');
+        el.setAttribute('plugin-config', JSON.stringify({
+          executionInterval: 180,
+          pluginSpecificConfig: {
+            Endpoints: ["http://fake-qc-address/sunset?node1&node3"]
+          }
+        }))
+      }, 1000)
+
+    </script>
+  </body>
 </html>

@@ -6,6 +6,8 @@ import { MatCardModule, MatTabsModule, MatExpansionModule, MatIconModule, MatChi
 import { BrowserAnimationsModule }                                                         from '@angular/platform-browser/animations';
 import { CommonModule }                                                                    from '@angular/common';
 
+import { environment as env } from "../../../../src/environments/environment"
+
 @NgModule({
   imports: [
     CommonModule,
@@ -30,17 +32,18 @@ export class AppModule implements DoBootstrap {
   }
 
   ngDoBootstrap(appRef: ApplicationRef): void {
-    const nspSettingsVewCE = createCustomElement(CheckResultComponent, { injector: this.injector });
-    //TODO: add web component selector generation mechanism
-    customElements.define('analyze-plugin-sunsetting-check-result-v2-0-0', nspSettingsVewCE);
+    const nspCheckViewCE = createCustomElement(CheckResultComponent, { injector: this.injector });
+    const webComponentName = "check-result"
+    const selector = env.pluginName + "-" + webComponentName + "-" + env.pluginVersion;
+    customElements.define(selector, nspCheckViewCE);
 
     const content = document.querySelector('head'); //TODO: move bus to document fragment
-    content.dispatchEvent(new CustomEvent('loadingNotifier', {
+    content.dispatchEvent(new CustomEvent('CELoadedEvent', {
       detail: {
-        pluginName: 'analyze-plugin-sunsetting',
-        pluginVersion: 'v2.0.0',
-        webComponentName: 'check-result',
-        selector: 'analyze-plugin-sunsetting-check-result-v2-0-0',
+        pluginName: env.pluginName,
+        pluginVersion: env.pluginVersion,
+        webComponentName: webComponentName,
+        selector: selector,
       },
       bubbles: false,
     }));

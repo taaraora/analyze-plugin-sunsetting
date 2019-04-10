@@ -1,22 +1,9 @@
+import { Injector, NgModule, Provider, ValueProvider, ApplicationRef } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import {Injector, NgModule, Provider, ValueProvider} from '@angular/core';
+import { createCustomElement } from "@angular/elements";
 
 import { PluginSettingsComponent } from './plugin-settings/plugin-settings.component';
-import {createCustomElement} from "@angular/elements";
-
-export let settingsProvider: ValueProvider = null;
-
-export const InitSettingProvider = (settings: ComponentSettings) => {
-  settingsProvider = {
-    provide: ComponentSettings,
-    useValue: settings,
-  };
-};
-
-export class ComponentSettings {
-  constructor(public namePrefix: string) {}
-}
-
+import { environment as env } from "../../../../src/environments/environment"
 
 @NgModule({
   imports: [
@@ -25,19 +12,29 @@ export class ComponentSettings {
   declarations: [
     PluginSettingsComponent
   ],
-  providers: [
-    settingsProvider,
-  ],
+  providers: [],
   entryComponents: [
     PluginSettingsComponent
   ]
 })
 export class AppModule {
-  constructor(private injector: Injector, private componentSettings: ComponentSettings) {
-  }
+  constructor( private injector: Injector ) {  }
 
-  ngDoBootstrap() {
-    const nspSettingsVewCE = createCustomElement(PluginSettingsComponent, { injector: this.injector });
-    customElements.define(this.componentSettings.namePrefix, nspSettingsVewCE);
+  ngDoBootstrap(appRef: ApplicationRef): void {
+    const nspSettingsViewCE = createCustomElement(PluginSettingsComponent, { injector: this.injector });
+    const webComponentName = "settings"
+    const selector = env.pluginName + "-" + webComponentName + "-" + env.pluginVersion;
+    customElements.define(selector, nspSettingsViewCE);
+
+    const head = document.querySelector('head');
+    head.dispatchEvent(new CustomEvent('CELoadedEvent', {
+      detail: {
+        pluginName: env.pluginName,
+        pluginVersion: env.pluginVersion,
+        webComponentName: webComponentName,
+        selector: selector,
+      },
+      bubbles: false,
+    }));
   }
 }

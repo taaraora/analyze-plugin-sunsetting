@@ -1,3 +1,5 @@
 export const environment = {
-  production: true
+  production: true,
+  pluginName: 'analyze-plugin-sunsetting',
+  pluginVersion: 'v2-0-0'
 };

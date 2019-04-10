@@ -1,3 +1,10 @@
-<p>
-  plugin-settings works!
-</p>
+<!-- mock template -->
+<div *ngIf="pluginConfig">
+  <span>Execution Interval: </span>{{ pluginConfig.executionInterval }}
+</div>
+<div *ngIf="pluginConfig">
+  <p>Plugin Config:</p>
+  <div>
+    <p *ngFor="let e of pluginConfig.pluginSpecificConfig.Endpoints">{{ e }}</p>
+  </div>
+</div>

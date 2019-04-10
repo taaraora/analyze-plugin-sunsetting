@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, EventEmitter, Input, Output, ViewEncapsulation} from '@angular/core';
-import {CheckResult, NodeCheckResult, WebComponentInfo} from "../models/models";
+import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
+import { CheckResult, NodeCheckResult, WebComponentInfo } from "../models/models";
 
 @Component({
   // it going to be generated while web component registering step
@@ -8,7 +8,7 @@ import {CheckResult, NodeCheckResult, WebComponentInfo} from "../models/models";
   styleUrls: ['./check-result.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CheckResultComponent implements AfterViewInit {
+export class CheckResultComponent {
 
   @Output('actionSubmit') actionSubmit = new EventEmitter<WebComponentInfo>();
 
@@ -23,18 +23,4 @@ export class CheckResultComponent implements AfterViewInit {
   public currentCheck: CheckResult;
 
   constructor() { }
-
-  ngAfterViewInit(): void {
-    setTimeout( () => {
-      this.actionSubmit.emit( {
-        pluginName: 'analyze-plugin-sunsetting',
-        pluginVersion: 'v2.0.0',
-        webComponentName: 'check-result',
-        selector: 'analyze-plugin-sunsetting-check-result-v2-0-0',
-      });
-      console.log('loadingNotifier emitted from plugin')
-    }, 2000);
-  }
-
-
 }
