@@ -2,31 +2,31 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/supergiant/analyze-plugin-sunsetting/asset"
-	"github.com/supergiant/analyze-plugin-sunsetting/cmd/analyze-sunsetting/server"
-	"github.com/supergiant/analyze-plugin-sunsetting/info"
-	"github.com/supergiant/analyze/pkg/plugin/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/supergiant/analyze/pkg/plugin/proto"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/reflection"
+
+	"github.com/supergiant/analyze-plugin-sunsetting/asset"
+	"github.com/supergiant/analyze-plugin-sunsetting/cmd/analyze-sunsetting/server"
+	"github.com/supergiant/analyze-plugin-sunsetting/info"
 )
 
-
-
-func main()  {
+func main() {
 	command := &cobra.Command{
 		Use:          "analyze-sunsetting",
 		Short:        "analyze-sunsetting plugin",
@@ -53,10 +53,10 @@ func main()  {
 
 func runCommand(cmd *cobra.Command, _ []string) error {
 	logger := &logrus.Logger{
-		Out:          os.Stdout,
-		Formatter:    &logrus.TextFormatter{
-			DisableTimestamp:          false,
-			FullTimestamp:             true,
+		Out: os.Stdout,
+		Formatter: &logrus.TextFormatter{
+			DisableTimestamp: false,
+			FullTimestamp:    true,
 		},
 		Hooks:        make(logrus.LevelHooks),
 		Level:        logrus.DebugLevel, //TODO: make it configurable
@@ -68,43 +68,42 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 
 	mainLogger.Infof("%+v", info.Info())
 
-
-	grpcApiPort, err := cmd.Flags().GetString("grpc-api-port")
+	grpcAPIPort, err := cmd.Flags().GetString("grpc-api-port")
 	if err != nil {
 		return errors.Wrap(err, "unable to get config flag grpc-api-port")
 	}
 
-	restApiPort, err := cmd.Flags().GetString("rest-api-port")
+	restAPIPort, err := cmd.Flags().GetString("rest-api-port")
 	if err != nil {
 		return errors.Wrap(err, "unable to get config flag rest-api-port")
 	}
 
-
-	mainLogger.Infof("grpc-api-port: %v, rest-api-port: %v", grpcApiPort, restApiPort)
+	mainLogger.Infof("grpc-api-port: %v, rest-api-port: %v", grpcAPIPort, restAPIPort)
 
 	//TODO: extract to separate component
-	handler := func (w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		mainLogger.Warnf("%s", r.URL.Path)
 		if strings.HasPrefix(r.URL.Path, "/api/v1/info") {
 			pi := info.Info()
 			b, _ := json.Marshal(&pi)
 			w.WriteHeader(http.StatusOK)
-			w.Write(b)
+			_, err = w.Write(b)
+			if err != nil {
+				mainLogger.Errorf("can't write info body: %+v", err)
+			}
 			return
 		}
 
 		fs := http.FileServer(asset.Assets)
 		fs.ServeHTTP(w, r)
-		return
 	}
 
 	http.HandleFunc("/", handler)
 	go func() {
-		mainLogger.Fatal(http.ListenAndServe(":" + restApiPort, nil))
+		mainLogger.Fatal(http.ListenAndServe(":"+restAPIPort, nil))
 	}()
 
-
-	listener, err := net.Listen("tcp", ":"+grpcApiPort)
+	listener, err := net.Listen("tcp", ":"+grpcAPIPort)
 	if err != nil {
 		return err
 	}
@@ -129,7 +128,6 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 	reflection.Register(grpcServer)
 	var pluginService = server.NewServer(mainLogger.WithField("component", "plugin_server"))
 	proto.RegisterPluginServer(grpcServer, pluginService)
-
 
 	return grpcServer.Serve(listener)
 }

@@ -1,11 +1,12 @@
 package kube
 
 import (
+	"strings"
+
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
-	"strings"
 
 	"github.com/pkg/errors"
 	corev1api "k8s.io/api/core/v1"
@@ -16,7 +17,7 @@ import (
 
 type Client struct {
 	clientSet *kubernetes.Clientset
-	logger logrus.FieldLogger
+	logger    logrus.FieldLogger
 }
 
 func NewKubeClient(logger logrus.FieldLogger) (*Client, error) {
@@ -33,14 +34,14 @@ func NewKubeClient(logger logrus.FieldLogger) (*Client, error) {
 
 	return &Client{
 		clientSet: clientSet,
-		logger:logger,
+		logger:    logger,
 	}, nil
 }
 
 func (c *Client) GetDaemonset(labelsSet labels.Set) (v1beta1.DaemonSet, error) {
 	var labelsSelector = labels.SelectorFromSet(labelsSet)
 	var options = metav1.ListOptions{
-		LabelSelector:   labelsSelector.String(),
+		LabelSelector: labelsSelector.String(),
 	}
 
 	dss, err := c.clientSet.ExtensionsV1beta1().DaemonSets("").List(options)
@@ -58,18 +59,25 @@ func (c *Client) GetDaemonset(labelsSet labels.Set) (v1beta1.DaemonSet, error) {
 // GetDaemonsetPods returns map kubernetes node ip to daemnoset pod on that node
 func (c *Client) GetDaemonsetPods(daemonSet v1beta1.DaemonSet) (map[string]corev1api.Pod, error) {
 	var result = map[string]corev1api.Pod{}
-	fieldSelector, err := fields.ParseSelector("status.phase!=" + string(corev1api.PodSucceeded) + ",status.phase!=" + string(corev1api.PodFailed))
+	fieldSelector, err := fields.ParseSelector(
+		"status.phase!=" +
+			string(corev1api.PodSucceeded) +
+			",status.phase!=" +
+			string(corev1api.PodFailed),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	nonTerminatedPodsList, err := c.clientSet.CoreV1().Pods("").List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+	nonTerminatedPodsList, err := c.clientSet.CoreV1().Pods("").List(
+		metav1.ListOptions{FieldSelector: fieldSelector.String()},
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(nonTerminatedPodsList.Items) == 0 {
-		return nil, errors.New("There are no running pods at cluster")
+		return nil, errors.New("there are no running pods at cluster")
 	}
 
 	for _, pod := range nonTerminatedPodsList.Items {
@@ -79,12 +87,11 @@ func (c *Client) GetDaemonsetPods(daemonSet v1beta1.DaemonSet) (map[string]corev
 	}
 
 	if len(result) == 0 {
-		return nil, errors.Errorf("There are no running pods for daemonSet %v", daemonSet.Name)
+		return nil, errors.Errorf("there are no running pods for daemonSet %v", daemonSet.Name)
 	}
 
 	return result, nil
 }
-
 
 func (c *Client) GetNodeResourceRequirements() (map[string]*NodeResourceRequirements, error) {
 	var instanceEntries = map[string]*NodeResourceRequirements{}
@@ -95,12 +102,21 @@ func (c *Client) GetNodeResourceRequirements() (map[string]*NodeResourceRequirem
 	}
 
 	for _, node := range nodes.Items {
-		fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.Name + ",status.phase!=" + string(corev1api.PodSucceeded) + ",status.phase!=" + string(corev1api.PodFailed))
+		fieldSelector, err := fields.ParseSelector(
+			"spec.nodeName=" +
+				node.Name +
+				",status.phase!=" +
+				string(corev1api.PodSucceeded) +
+				",status.phase!=" +
+				string(corev1api.PodFailed),
+		)
 		if err != nil {
 			return nil, err
 		}
 
-		nonTerminatedPodsForNode, err := c.clientSet.CoreV1().Pods("").List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+		nonTerminatedPodsForNode, err := c.clientSet.CoreV1().Pods("").List(
+			metav1.ListOptions{FieldSelector: fieldSelector.String()},
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -136,19 +152,19 @@ func getNodeResourceRequirements(node corev1api.Node, pods []corev1api.Pod) (*No
 		allocatable = node.Status.Allocatable
 	}
 
-	nodeResourceRequirements.AllocatableCpu = allocatable.Cpu().MilliValue()
+	nodeResourceRequirements.AllocatableCPU = allocatable.Cpu().MilliValue()
 	nodeResourceRequirements.AllocatableMemory = allocatable.Memory().Value()
 
 	nodeResourceRequirements.RefreshTotals()
 
-	var internalIp string
+	var internalIP string
 	for _, address := range node.Status.Addresses {
 		if address.Type == corev1api.NodeInternalIP {
-			internalIp = address.Address
+			internalIP = address.Address
 		}
 	}
 
-	nodeResourceRequirements.internalIPAddress = internalIp
+	nodeResourceRequirements.internalIPAddress = internalIP
 
 	return nodeResourceRequirements, nil
 }
@@ -173,14 +189,15 @@ func parseProviderID(providerID string) (string, string, error) {
 func getPodsRequestsAndLimits(podList []corev1api.Pod) []*PodResourceRequirements {
 	var result = []*PodResourceRequirements{}
 	for _, pod := range podList {
+		p := pod
 		var podRR = &PodResourceRequirements{
-			PodName: pod.Name,
+			PodName: p.Name,
 		}
 
-		podReqs, podLimits := PodRequestsAndLimits(&pod)
+		podReqs, podLimits := PodRequestsAndLimits(&p)
 		cpuReqs, cpuLimits := podReqs[corev1api.ResourceCPU], podLimits[corev1api.ResourceCPU]
 		memoryReqs, memoryLimits := podReqs[corev1api.ResourceMemory], podLimits[corev1api.ResourceMemory]
-		podRR.CpuReqs, podRR.CpuLimits = cpuReqs.MilliValue(), cpuLimits.MilliValue()
+		podRR.CPUReqs, podRR.CPULimits = cpuReqs.MilliValue(), cpuLimits.MilliValue()
 		podRR.MemoryReqs, podRR.MemoryLimits = memoryReqs.Value(), memoryLimits.Value()
 
 		result = append(result, podRR)
@@ -224,10 +241,8 @@ func maxResourceList(list, new corev1api.ResourceList) {
 		if value, ok := list[name]; !ok {
 			list[name] = *quantity.Copy()
 			continue
-		} else {
-			if quantity.Cmp(value) > 0 {
-				list[name] = *quantity.Copy()
-			}
+		} else if quantity.Cmp(value) > 0 {
+			list[name] = *quantity.Copy()
 		}
 	}
 }

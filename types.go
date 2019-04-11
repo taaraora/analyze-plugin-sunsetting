@@ -1,9 +1,10 @@
 package sunsetting
 
 import (
+	"sort"
+
 	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
 	"github.com/supergiant/analyze-plugin-sunsetting/kube"
-	"sort"
 )
 
 // InstanceEntry struct represents Kelly's "instances to sunset" table entry,
@@ -23,7 +24,7 @@ func (m *InstanceEntry) RAMRequested() int64 {
 }
 
 func (m *InstanceEntry) CPUWasted() int64 {
-	return m.WorkerNode.AllocatableCpu - m.WorkerNode.CpuReqs()
+	return m.WorkerNode.AllocatableCPU - m.WorkerNode.CPUReqs()
 }
 
 // EntriesByWastedRAM implements sort.Interface based on the value returned by NodeResourceRequirements.RAMWasted().
@@ -39,7 +40,10 @@ func NewSortedEntriesByWastedRAM(in []*InstanceEntry) EntriesByWastedRAM {
 			Price:         e.Price,
 			WorkerNode:    e.WorkerNode,
 		}
-		item.WorkerNode.PodsResourceRequirements = make([]*kube.PodResourceRequirements, len(e.WorkerNode.PodsResourceRequirements))
+		item.WorkerNode.PodsResourceRequirements = make(
+			[]*kube.PodResourceRequirements,
+			len(e.WorkerNode.PodsResourceRequirements),
+		)
 		for j, p := range e.WorkerNode.PodsResourceRequirements {
 			var newP = *p
 			item.WorkerNode.PodsResourceRequirements[j] = &newP
@@ -59,7 +63,8 @@ func (e EntriesByWastedRAM) Len() int           { return len(e) }
 func (e EntriesByWastedRAM) Less(i, j int) bool { return e[i].RAMWasted() < e[j].RAMWasted() }
 func (e EntriesByWastedRAM) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
 
-// EntriesByRequestedRAM implements sort.Interface based on the value returned by NodeResourceRequirements.RAMRequested().
+// EntriesByRequestedRAM implements sort.Interface based on the value
+// returned by NodeResourceRequirements.RAMRequested().
 type EntriesByRequestedRAM []*InstanceEntry
 
 // NewSortedEntriesByRequestedRAM makes deep copy of passed slice and invoke sort.Sort on it
@@ -72,7 +77,11 @@ func NewSortedEntriesByRequestedRAM(in []*InstanceEntry) EntriesByRequestedRAM {
 			Price:         e.Price,
 			WorkerNode:    e.WorkerNode,
 		}
-		item.WorkerNode.PodsResourceRequirements = make([]*kube.PodResourceRequirements, len(e.WorkerNode.PodsResourceRequirements))
+		item.WorkerNode.PodsResourceRequirements = make(
+			[]*kube.PodResourceRequirements,
+			len(e.WorkerNode.PodsResourceRequirements),
+		)
+
 		for j, p := range e.WorkerNode.PodsResourceRequirements {
 			var newP = *p
 			item.WorkerNode.PodsResourceRequirements[j] = &newP

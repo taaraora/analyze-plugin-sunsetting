@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
+
+
+service Plugin {
+    rpc Info(google.protobuf.Empty) returns (PluginInfo);
+    rpc Check (CheckRequest) returns (CheckResponse);
+    rpc Configure (PluginConfig) returns (google.protobuf.Empty);
+
+    //Graceful Shutdown Plugin
+    rpc Stop (Stop.Request) returns (Stop.Response);
+}
+
+message PluginInfo {
+    //unique ID of plugin
+    //basically it is slugged URI of plugin repository name e. g. supergiant-underutilized-nodes
+    string id = 1;
+    //plugin version in semver format
+    string version = 2;
+    //short name of plugin
+    string name = 3;
+    // detailed plugin description
+    string description = 4;
+    // plugin default config
+    PluginConfig default_config = 5;
+    // path to bundle which is entry for web component
+    string settings_component_entry_point = 6;
+    string check_component_entry_point = 7;
+}
+
+// plugin instance is running inside k8s cluster, consequently:
+// k8s api server doesn't need to be configured and is accessible through k8s service discovery
+// AWS credentials need to be configured
+message PluginConfig {
+    google.protobuf.Duration execution_interval = 1;
+    google.protobuf.Any plugin_specific_config = 2;
+
+    CloudProviderType provider_type = 3;
+    oneof cloud_provider_config {
+        DoConfig do_config = 4;
+        AwsConfig aws_config = 5;
+    }
+    string metrics_server_uri = 6;
+}
+
+message Stop {
+    message Request {
+    }
+    message Response {
+        string error = 1;
+    }
+}
+
+message CheckRequest {}
+
+message CheckResponse {
+    CheckResult result = 1;
+    string error = 2;
+}
+
+message CheckResult {
+    string execution_status = 1;
+    CheckStatus status = 2;
+    string name = 3;
+    // TODO: temporary solution need to be redesigned.
+    google.protobuf.Any description = 4;
+}
+
+enum CheckStatus {
+    UNKNOWN_CHECK_STATUS = 0;
+    GREEN = 1;
+    YELLOW = 2;
+    RED = 3;
+}
+
+enum CloudProviderType {
+    UNKNOWN_CLOUD_PROVIDER_TYPE = 0;
+    AWS = 1;
+    DO = 2;
+}
+
+message AwsConfig {
+    string access_key_id = 1;
+    string secret_access_key = 2;
+    string region = 3;
+}
+
+// not implemented yet
+message DoConfig {
+
+}

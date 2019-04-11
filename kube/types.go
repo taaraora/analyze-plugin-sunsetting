@@ -2,14 +2,16 @@ package kube
 
 import (
 	"encoding/json"
+
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-
-var NodeAgentLabelsSet = labels.Set{
-	"app.kubernetes.io/part-of": "analyze",
-	"app.kubernetes.io/name": "analyze-nodeagent",
-	"app.kubernetes.io/component": "nodeagent",
+func GetNodeAgentLabelsSet() labels.Set {
+	return labels.Set{
+		"app.kubernetes.io/part-of":   "analyze",
+		"app.kubernetes.io/name":      "analyze-nodeagent",
+		"app.kubernetes.io/component": "nodeagent",
+	}
 }
 
 type NodeResourceRequirements struct {
@@ -20,16 +22,18 @@ type NodeResourceRequirements struct {
 	InstanceID string
 
 	PodsResourceRequirements []*PodResourceRequirements
-	AllocatableCpu           int64
+	AllocatableCPU           int64
 	AllocatableMemory        int64
 
-	cpuReqs      int64
+	//nolint
+	cpuReqs int64
+	//nolint
 	cpuLimits    int64
 	memoryReqs   int64
 	memoryLimits int64
 
-	fractionCpuReqs      float64
-	fractionCpuLimits    float64
+	fractionCPUReqs      float64
+	fractionCPULimits    float64
 	fractionMemoryReqs   float64
 	fractionMemoryLimits float64
 
@@ -38,34 +42,34 @@ type NodeResourceRequirements struct {
 
 type PodResourceRequirements struct {
 	PodName      string `json:"podName"`
-	CpuReqs      int64  `json:"cpuRequests"`
-	CpuLimits    int64  `json:"cpuLimits"`
+	CPUReqs      int64  `json:"cpuRequests"`
+	CPULimits    int64  `json:"cpuLimits"`
 	MemoryReqs   int64  `json:"memoryRequests"`
 	MemoryLimits int64  `json:"memoryLimits"`
 }
 
 // RefreshTotals recalculates total node requests and limits and their fractional representation
-// need to be invoked every time when PodsResourceRequirements or AllocatableMemory or AllocatableCpu where changed
+// need to be invoked every time when PodsResourceRequirements or AllocatableMemory or AllocatableCPU where changed
 func (n *NodeResourceRequirements) RefreshTotals() {
 	n.cpuReqs = 0
 	n.cpuLimits = 0
 	n.memoryReqs = 0
 	n.memoryLimits = 0
-	n.fractionCpuReqs = 0
-	n.fractionCpuLimits = 0
+	n.fractionCPUReqs = 0
+	n.fractionCPULimits = 0
 	n.fractionMemoryReqs = 0
 	n.fractionMemoryLimits = 0
 
 	for _, podRR := range n.PodsResourceRequirements {
-		n.cpuReqs += podRR.CpuReqs
-		n.cpuLimits += podRR.CpuLimits
+		n.cpuReqs += podRR.CPUReqs
+		n.cpuLimits += podRR.CPULimits
 		n.memoryReqs += podRR.MemoryReqs
 		n.memoryLimits += podRR.MemoryLimits
 	}
 
-	if n.AllocatableCpu != 0 {
-		n.fractionCpuReqs = float64(n.cpuReqs) / float64(n.AllocatableCpu) * 100
-		n.fractionCpuLimits = float64(n.cpuLimits) / float64(n.AllocatableCpu) * 100
+	if n.AllocatableCPU != 0 {
+		n.fractionCPUReqs = float64(n.cpuReqs) / float64(n.AllocatableCPU) * 100
+		n.fractionCPULimits = float64(n.cpuLimits) / float64(n.AllocatableCPU) * 100
 	}
 
 	if n.AllocatableMemory != 0 {
@@ -74,11 +78,11 @@ func (n *NodeResourceRequirements) RefreshTotals() {
 	}
 }
 
-func (n *NodeResourceRequirements) CpuReqs() int64 {
+func (n *NodeResourceRequirements) CPUReqs() int64 {
 	return n.cpuReqs
 }
 
-func (n *NodeResourceRequirements) CpuLimits() int64 {
+func (n *NodeResourceRequirements) CPULimits() int64 {
 	return n.cpuLimits
 }
 
@@ -90,12 +94,12 @@ func (n *NodeResourceRequirements) MemoryLimits() int64 {
 	return n.memoryLimits
 }
 
-func (n *NodeResourceRequirements) FractionCpuReqs() float64 {
-	return n.fractionCpuReqs
+func (n *NodeResourceRequirements) FractionCPUReqs() float64 {
+	return n.fractionCPUReqs
 }
 
-func (n *NodeResourceRequirements) FractionCpuLimits() float64 {
-	return n.fractionCpuLimits
+func (n *NodeResourceRequirements) FractionCPULimits() float64 {
+	return n.fractionCPULimits
 }
 
 func (n *NodeResourceRequirements) FractionMemoryReqs() float64 {
@@ -113,14 +117,14 @@ func (n *NodeResourceRequirements) MarshalJSON() ([]byte, error) {
 		"region":                   n.Region,
 		"instanceId":               n.InstanceID,
 		"podsResourceRequirements": n.PodsResourceRequirements,
-		"allocatableCpu":           n.AllocatableCpu,
+		"allocatableCpu":           n.AllocatableCPU,
 		"allocatableMemory":        n.AllocatableMemory,
 		"cpuRequests":              n.cpuReqs,
 		"cpuLimits":                n.cpuLimits,
 		"memoryRequests":           n.memoryReqs,
 		"memoryLimits":             n.memoryLimits,
-		"fractionCpuRequests":      n.fractionCpuReqs,
-		"fractionCpuLimits":        n.fractionCpuLimits,
+		"fractionCpuRequests":      n.fractionCPUReqs,
+		"fractionCpuLimits":        n.fractionCPULimits,
 		"fractionMemoryRequests":   n.fractionMemoryReqs,
 		"fractionMemoryLimits":     n.fractionMemoryLimits,
 	})

@@ -11,6 +11,7 @@ import (
 //metadataAPIProtocolScheme
 const scheme = "http://"
 const agentPort = ":9292"
+
 type Client struct {
 	logger     logrus.FieldLogger
 	httpClient *http.Client
@@ -18,7 +19,7 @@ type Client struct {
 
 type Instance struct {
 	HostIP string `json:"hostIp"`
-	PodIP string `json:"podIp"`
+	PodIP  string `json:"podIp"`
 }
 
 func NewClient(logger logrus.FieldLogger) (*Client, error) {

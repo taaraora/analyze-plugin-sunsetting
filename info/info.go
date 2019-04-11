@@ -1,16 +1,16 @@
 package info
 
 // Build information. Populated at build-time.
+//nolint
 var (
-	Version   string
-	Revision  string
-	Branch    string
-	BuildDate string
-	GoVersion string
+	Version                     string
+	Revision                    string
+	Branch                      string
+	BuildDate                   string
+	GoVersion                   string
 	SettingsComponentEntryPoint string
 	CheckComponentEntryPoint    string
 )
-
 
 type PluginInfo struct {
 	// detailed plugin description
@@ -46,7 +46,7 @@ type PluginInfo struct {
 	// plugin version, major version shall be equal to analyze-core version
 	Version string `json:"version,omitempty"`
 
-	Revision string `json:"revision,omitempty"`
+	Revision  string `json:"revision,omitempty"`
 	Branch    string `json:"branch,omitempty"`
 	BuildDate string `json:"buildDate,omitempty"`
 	GoVersion string `json:"goVersion,omitempty"`
@@ -54,19 +54,20 @@ type PluginInfo struct {
 
 func Info() PluginInfo {
 	return PluginInfo{
-		Description:   "Sunsetting plugin shows how it is possible to pack nodes better, and which nodes can be shut down",
-		ID:            "analyze-plugin-sunsetting",
-		InstalledAt:   "",
-		Name:          "Supergiant sunsetting plugin",
-		ServiceLabels: nil,
-		ServiceEndpoint:   "",
+		Description: "Sunsetting plugin shows how it is possible to pack nodes better," +
+			" and which nodes can be shut down",
+		ID:                          "analyze-plugin-sunsetting",
+		InstalledAt:                 "",
+		Name:                        "Supergiant sunsetting plugin",
+		ServiceLabels:               nil,
+		ServiceEndpoint:             "",
 		SettingsComponentEntryPoint: SettingsComponentEntryPoint,
-		CheckComponentEntryPoint: CheckComponentEntryPoint,
-		Status:        "OK",
-		Version:       Version,
-		Revision:      Revision,
-		Branch:        Branch,
-		BuildDate:     BuildDate,
-		GoVersion:     GoVersion,
+		CheckComponentEntryPoint:    CheckComponentEntryPoint,
+		Status:                      "OK",
+		Version:                     Version,
+		Revision:                    Revision,
+		Branch:                      Branch,
+		BuildDate:                   BuildDate,
+		GoVersion:                   GoVersion,
 	}
 }

@@ -2,11 +2,13 @@
 
 # Exit script when command fails
 set -o errexit
-# Exit script when it tries to use undeclared variables
-set -o nounset
 # if any of the commands in pipeline fails, script will exit
 set -o pipefail
 
-cd ./ui && npm run build:webcomponents
+BUILD_DATE=${BUILD_DATE:-$( date +%Y%m%d-%H:%M:%S )}
+PLUGIN_NAME="analyze-plugin-sunsetting"
+PLUGIN_VERSION=$( git describe --tags --dirty --abbrev=14 | sed -E 's/-([0-9]+)-g/.\1+/' )
 
-exit 0
+//blabala popate environment.ts
+
+cd ./ui && npm run build:webcomponents

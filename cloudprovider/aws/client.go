@@ -2,11 +2,13 @@ package aws
 
 import (
 	"encoding/json"
-	"github.com/aws/aws-sdk-go-v2/aws/ec2metadata"
-	"github.com/sirupsen/logrus"
-	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/aws/aws-sdk-go-v2/aws/ec2metadata"
+	"github.com/sirupsen/logrus"
+
+	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
 
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -16,15 +18,16 @@ import (
 )
 
 const serviceCode = "AmazonEC2"
+
 // filters
 const neededProductFamily = "Compute Instance"
 const neededOperatingSystem = "Linux"
 const neededPreInstalledSw = "NA"
 
 type Client struct {
-	ec2Service        *ec2.EC2
-	logger logrus.FieldLogger
-	region string
+	ec2Service *ec2.EC2
+	logger     logrus.FieldLogger
+	region     string
 }
 
 //NewClient creates aws client
@@ -36,20 +39,20 @@ func NewClient(clientConfig *proto.AwsConfig, logger logrus.FieldLogger) (*Clien
 	}
 
 	var c = &Client{
-		logger:logger,
+		logger: logger,
 		region: cfg.Region,
 	}
 
 	if cfg.Region == "" && region == "" {
 		ec2Metadata := ec2metadata.New(cfg)
-		r, err :=  ec2Metadata.Region()
+		r, err := ec2Metadata.Region()
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to load AWS region")
 		}
 		region = r
 	}
 
-	if region != ""{
+	if region != "" {
 		cfg.Region = region
 		c.region = region
 	}
@@ -61,15 +64,26 @@ func NewClient(clientConfig *proto.AwsConfig, logger logrus.FieldLogger) (*Clien
 }
 
 func (c *Client) GetPrices() (map[string][]cloudprovider.ProductPrice, error) {
-	var computeInstancesPrices = make(map[string][]cloudprovider.ProductPrice, 0)
+	var computeInstancesPrices = make(map[string][]cloudprovider.ProductPrice)
 
-	var offeringsURI = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/" + serviceCode + "/current/" + c.region + "/index.json"
-	offeringsRaw, err :=  http.Get(offeringsURI)
+	var offeringsURI = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/" +
+		serviceCode +
+		"/current/" +
+		c.region +
+		"/index.json"
+
+	//nolint
+	offeringsRaw, err := http.Get(offeringsURI)
 	if err != nil {
 		c.logger.Errorf("failed fetch data from uri: %s", offeringsURI)
 		return nil, errors.Wrap(err, "can't download prices")
 	}
-	defer offeringsRaw.Body.Close()
+	defer func() {
+		err := offeringsRaw.Body.Close()
+		if err != nil {
+			c.logger.Errorf("failed to close body of offeringsURI response: %+v", err)
+		}
+	}()
 	if offeringsRaw.StatusCode != http.StatusOK {
 		c.logger.Errorf("failed fetch data from uri: %s", offeringsURI)
 		return nil, errors.Errorf("can't download prices, server returned %s", offeringsRaw.Status)
@@ -77,19 +91,23 @@ func (c *Client) GetPrices() (map[string][]cloudprovider.ProductPrice, error) {
 
 	// file size is about 40 - 50 megabytes
 	offeringBytes, err := ioutil.ReadAll(offeringsRaw.Body)
+	if err != nil {
+		c.logger.Errorf("failed data from request body: %s", offeringsURI)
+		return nil, errors.Errorf("failed data from request body: %+v", err)
+	}
 
 	type prices struct {
 		Products map[string]struct {
 			Sku           string `json:"sku"`
 			ProductFamily string `json:"productFamily"`
 			Attributes    struct {
-				InstanceType string `json:"instanceType"`
-				Memory       string `json:"memory"`
-				Vcpu         string `json:"vcpu"`
-				Usagetype    string `json:"usagetype"`
-				Tenancy      string `json:"tenancy"`
-				OperatingSystem      string `json:"operatingSystem"`
-				PreInstalledSw      string `json:"preInstalledSw"`
+				InstanceType    string `json:"instanceType"`
+				Memory          string `json:"memory"`
+				Vcpu            string `json:"vcpu"`
+				Usagetype       string `json:"usagetype"`
+				Tenancy         string `json:"tenancy"`
+				OperatingSystem string `json:"operatingSystem"`
+				PreInstalledSw  string `json:"preInstalledSw"`
 			} `json:"attributes"`
 		} `json:"products"`
 		Terms struct {
@@ -131,18 +149,21 @@ func (c *Client) GetPrices() (map[string][]cloudprovider.ProductPrice, error) {
 		}
 
 		for _, price := range offerings.Terms.OnDemand[productSku] {
-			for _, priceDimension := range  price.PriceDimensions {
+			for _, priceDimension := range price.PriceDimensions {
 				newPriceItem.Unit = priceDimension.Unit
-				newPriceItem.ValuePerUnit=  priceDimension.PricePerUnit.USDRate
+				newPriceItem.ValuePerUnit = priceDimension.PricePerUnit.USDRate
 				break
 			}
 		}
 
 		_, exists := computeInstancesPrices[product.Attributes.InstanceType]
 		if !exists {
-			computeInstancesPrices[product.Attributes.InstanceType] = make([]cloudprovider.ProductPrice, 0, 0)
+			computeInstancesPrices[product.Attributes.InstanceType] = make([]cloudprovider.ProductPrice, 0)
 		}
-		computeInstancesPrices[product.Attributes.InstanceType] = append(computeInstancesPrices[product.Attributes.InstanceType], newPriceItem)
+		computeInstancesPrices[product.Attributes.InstanceType] = append(
+			computeInstancesPrices[product.Attributes.InstanceType],
+			newPriceItem,
+		)
 	}
 
 	return computeInstancesPrices, nil

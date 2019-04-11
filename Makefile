@@ -6,23 +6,24 @@ CURRENT_DIR := $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))
 DOCKER_IMAGE_NAME := $(if ${TRAVIS_REPO_SLUG},${TRAVIS_REPO_SLUG},supergiant/analyze-plugin-sunsetting)
 DOCKER_IMAGE_TAG := $(if ${TAG},${TAG},$(shell git describe --tags --always | tr -d v || echo 'latest'))
 
+GO_FILES := $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 define LINT
 	@echo "Running code linters..."
-	revive
-	@echo "Running code linters finished."
+	golangci-lint run
 endef
 
+
 define GOIMPORTS
-	goimports -v -w -local github.com/supergiant/analyze-plugin-sunsetting ${CURRENT_DIR}
+	goimports -v -w -local github.com/supergiant/analyze-plugin-sunsetting -l $(GO_FILES)
 endef
 
 define TOOLS
-		if [ ! -x "`which revive 2>/dev/null`" ]; \
+		if [ ! -x "`which golangci-lint 2>/dev/null`" ]; \
         then \
-        	echo "revive linter not found."; \
+        	echo "golangci-lint linter not found."; \
         	echo "Installing linter... into ${GOPATH}/bin"; \
-        	GO111MODULE=off go get -u github.com/mgechev/revive ; \
+        	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b ${GOPATH}/bin  v1.16.0 ; \
         fi
 endef
 
@@ -38,7 +39,7 @@ lint: tools
 
 .PHONY: test
 test:
-	go test -race ./...
+	go test -mod=vendor -count=1 -race ./...
 
 .PHONY: tools
 tools:
@@ -75,3 +76,7 @@ gofmt:
 
 .PHONY: fmt
 fmt: gofmt goimports
+
+.PHONY: push-release
+push-release:
+	./scripts/push_release.sh

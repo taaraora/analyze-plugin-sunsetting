@@ -1,4 +1,8 @@
 #!/bin/bash
+# Exit script when command fails
+set -o errexit
+# if any of the commands in pipeline fails, script will exit
+set -o pipefail
 
 echo "Compressing assests"
 tar -czpf /tmp/assest.gz "${TRAVIS_HOME}"/gopath/src/github.com/"${TRAVIS_REPO_SLUG}"/
@@ -13,11 +17,3 @@ case "${TAG}" in
 	*)echo "Releasing version: ${TAG}, as latest release."
 	ghr --username supergiant --token "$GITHUB_TOKEN" --replace -b "latest release" --debug "$TAG" /tmp/assest.gz;;
 esac
-
-# Check for errors
-if [ $? -eq 0 ]; then
-	echo "Release pushed"
-else
-	echo "Push to releases failed"
-	exit 1
-fi

@@ -13,7 +13,7 @@ import (
 func main() {
 
 	var fileSystem http.FileSystem = union.New(map[string]http.FileSystem{
-		"/check":      http.Dir("./check"),
+		"/check":    http.Dir("./check"),
 		"/settings": http.Dir("./settings"),
 	})
 

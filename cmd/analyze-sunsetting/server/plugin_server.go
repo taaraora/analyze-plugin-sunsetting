@@ -2,10 +2,10 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/supergiant/analyze-plugin-sunsetting"
 	"strings"
 	"time"
+
+	"github.com/golang/protobuf/ptypes"
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
+	sunsetting "github.com/supergiant/analyze-plugin-sunsetting"
 	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
 	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider/aws"
 	"github.com/supergiant/analyze-plugin-sunsetting/kube"
@@ -30,19 +31,23 @@ type server struct {
 	logger                 logrus.FieldLogger
 }
 
-var checkResult = &proto.CheckResult{
-	ExecutionStatus: "OK",
-	Status:          proto.CheckStatus_UNKNOWN_CHECK_STATUS,
-	Name:            "Underutilized nodes sunsetting Check",
-	Description: &any.Any{
-		TypeUrl: "io.supergiant.analyze.plugin.requestslimitscheck",
-		Value:   []byte("Resources (CPU/RAM) total capacity and allocatable where checked on nodes of k8s cluster. Results:"),
-	},
+func checkResult() *proto.CheckResult {
+	return &proto.CheckResult{
+		ExecutionStatus: "OK",
+		Status:          proto.CheckStatus_UNKNOWN_CHECK_STATUS,
+		Name:            "Underutilized nodes sunsetting Check",
+		Description: &any.Any{
+			TypeUrl: "io.supergiant.analyze.plugin.requestslimitscheck",
+			Value: []byte(
+				"Resources (CPU/RAM) total capacity and allocatable where checked on nodes of k8s cluster. Results:",
+			),
+		},
+	}
 }
 
 func NewServer(logger logrus.FieldLogger) proto.PluginServer {
 	return &server{
-		logger:logger,
+		logger: logger,
 	}
 }
 
@@ -55,24 +60,31 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 		return nil, errors.Wrap(err, "unable to get nodeResourceRequirements")
 	}
 
-	nodeAgentsDaemonSet, err := u.kubeClient.GetDaemonset(kube.NodeAgentLabelsSet)
+	nodeAgentsDaemonSet, err := u.kubeClient.GetDaemonset(kube.GetNodeAgentLabelsSet())
 	if err != nil {
 		u.logger.Errorf("unable to get nodeAgentsDaemonSet, %v", err)
 		return nil, errors.Wrap(err, "unable to get nodeAgentsDaemonSet")
 	}
 
 	nodeagentPods, err := u.kubeClient.GetDaemonsetPods(nodeAgentsDaemonSet)
+	if err != nil {
+		u.logger.Errorf("unable to get GetDaemonsetPods, %v", err)
+		return nil, errors.Wrap(err, "unable to get GetDaemonsetPods")
+	}
 
 	var computeInstances = make(map[string]cloudprovider.ComputeInstance)
 	for instanceID, resourceRequirements := range nodeResourceRequirements {
 		nodeagentPod, exists := nodeagentPods[resourceRequirements.IPAddress()]
 		if !exists {
-			u.logger.Errorf("There is no analyze nodeAgent is running for nodeIP, %s", resourceRequirements.IPAddress())
+			u.logger.Errorf(
+				"There is no analyze nodeAgent is running for nodeIP, %s",
+				resourceRequirements.IPAddress(),
+			)
 			continue
 		}
 		var nodeAgentInstance = nodeagent.Instance{
-			HostIP:nodeagentPod.Status.HostIP,
-			PodIP: nodeagentPod.Status.PodIP,
+			HostIP: nodeagentPod.Status.HostIP,
+			PodIP:  nodeagentPod.Status.PodIP,
 		}
 		fetchedInstanceID, err := u.nodeAgentClient.Get(nodeAgentInstance.PodURI() + "/aws/meta-data/instance-id")
 		if err != nil {
@@ -89,14 +101,18 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 		}
 
 		instanceType, err := u.nodeAgentClient.Get(nodeAgentInstance.PodURI() + "/aws/meta-data/instance-type")
+		if err != nil {
+			u.logger.Errorf("can't ec2 instance Type: %+v", err)
+			continue
+		}
 		computeInstances[instanceID] = cloudprovider.ComputeInstance{
 			InstanceID:   instanceID,
 			InstanceType: instanceType,
 		}
 	}
 
-	var unsortedEntries []*sunsetting.InstanceEntry
-	var result []sunsetting.InstanceEntry
+	var unsortedEntries = make([]*sunsetting.InstanceEntry, 0)
+	var result = make([]sunsetting.InstanceEntry, 0)
 
 	// create InstanceEntries by combining nodeResourceRequirements with ec2 instance type and price
 	for InstanceID, computeInstance := range computeInstances {
@@ -139,7 +155,7 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 	}
 
 	// mark nodes selected node with IsRecommendedToSunset == true
-	for i, _ := range result {
+	for i := range result {
 		for _, entryToSunset := range instancesToSunset {
 			if entryToSunset.CloudProvider.InstanceID == result[i].CloudProvider.InstanceID {
 				result[i].WorkerNode.IsRecommendedToSunset = true
@@ -149,6 +165,7 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 
 	b, _ := json.Marshal(result)
 
+	checkResult := checkResult()
 	checkResult.Description = &any.Any{
 		TypeUrl: "io.supergiant.analyze.plugin.sunsetting",
 		Value:   b,
@@ -200,12 +217,13 @@ func (u *server) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, 
 	defer u.logger.Info("info request done")
 
 	return &proto.PluginInfo{
-		Id:                          "supergiant-underutilized-nodes-plugin",
-		Version:                     "v0.0.1",
-		Name:                        "Underutilized nodes sunsetting plugin",
-		Description:                 "This plugin checks nodes using high intelligent Kelly's approach to find underutilized nodes, than calculates how it is possible to fix that",
-		DefaultConfig:               &proto.PluginConfig{
-			ExecutionInterval:    ptypes.DurationProto(2 * time.Minute),
+		Id:      "supergiant-underutilized-nodes-plugin",
+		Version: "v0.0.1",
+		Name:    "Underutilized nodes sunsetting plugin",
+		Description: "This plugin checks nodes using high intelligent Kelly's approach to find underutilized nodes," +
+			" than calculates how it is possible to fix that",
+		DefaultConfig: &proto.PluginConfig{
+			ExecutionInterval: ptypes.DurationProto(2 * time.Minute),
 		},
 	}, nil
 }
