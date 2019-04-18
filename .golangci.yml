@@ -1,7 +1,12 @@
 run:
+    build-tags:
+        - dev
     skip-dirs:
         - vendor
         - scripts
+        - asset
+        - dist
+        - ui
     modules-download-mode: vendor
 
 linters:

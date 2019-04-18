@@ -5,6 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/cloudprovider"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/cloudprovider/aws"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/kube"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/nodeagent"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/sunsetting"
+
 	"github.com/golang/protobuf/ptypes"
 
 	"github.com/golang/protobuf/ptypes/any"
@@ -12,12 +18,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-
-	sunsetting "github.com/supergiant/analyze-plugin-sunsetting"
-	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider"
-	"github.com/supergiant/analyze-plugin-sunsetting/cloudprovider/aws"
-	"github.com/supergiant/analyze-plugin-sunsetting/kube"
-	"github.com/supergiant/analyze-plugin-sunsetting/nodeagent"
 
 	"github.com/supergiant/analyze/pkg/plugin/proto"
 )
@@ -208,6 +208,8 @@ func (u *server) Configure(ctx context.Context, pluginConfig *proto.PluginConfig
 	if err != nil {
 		return nil, err
 	}
+
+	u.logger.Infof("got configuration %+v", *pluginConfig)
 
 	return &empty.Empty{}, nil
 }

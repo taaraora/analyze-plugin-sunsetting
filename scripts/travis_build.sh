@@ -1,9 +1,11 @@
 #!/bin/bash
-
 # Exit script when command fails
 set -o errexit
 # if any of the commands in pipeline fails, script will exit
 set -o pipefail
+
+#replace all slashes from string "task/S20-950" => "taskS20-950"
+TRAVIS_BRANCH=${TRAVIS_BRANCH/\//}
 
 export TAG=${TRAVIS_BRANCH:-unstable}
 

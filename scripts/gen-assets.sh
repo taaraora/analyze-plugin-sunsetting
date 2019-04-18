@@ -8,4 +8,4 @@ set -o pipefail
 cp  -R ./ui/dist/check ./asset
 cp  -R ./ui/dist/settings ./asset
 
-cd ./asset && go generate
+cd ./asset && go generate -mod vendor

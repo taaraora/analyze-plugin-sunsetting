@@ -8,4 +8,4 @@ import (
 	_ "github.com/shurcooL/vfsgen"
 )
 
-//go:generate go run asset_generate.go
+//go:generate go run -mod vendor asset_generate.go

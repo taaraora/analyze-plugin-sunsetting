@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/info"
+
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -23,7 +25,6 @@ import (
 
 	"github.com/supergiant/analyze-plugin-sunsetting/asset"
 	"github.com/supergiant/analyze-plugin-sunsetting/cmd/analyze-sunsetting/server"
-	"github.com/supergiant/analyze-plugin-sunsetting/info"
 )
 
 func main() {

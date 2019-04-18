@@ -39,7 +39,7 @@ lint: tools
 
 .PHONY: test
 test:
-	go test -mod=vendor -count=1 -race ./...
+	go test -mod=vendor -count=1 -tags=dev -race ./...
 
 .PHONY: tools
 tools:
@@ -51,7 +51,7 @@ goimports:
 
 .PHONY: build-image
 build-image: build-ui gen-assets build
-	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) ./dist -f ./Dockerfile
+	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) -f ./Dockerfile .
 	docker tag $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) $(DOCKER_IMAGE_NAME):latest
 
 .PHONY: build
@@ -80,3 +80,12 @@ fmt: gofmt goimports
 .PHONY: push-release
 push-release:
 	./scripts/push_release.sh
+
+.PHONY: test-windows
+test-windows:
+	docker run --rm -it --name analyze_sunsetting_test \
+    		--mount type=bind,src=${CURRENT_DIR},dst=/go/src/github.com/supergiant/analyze-plugin-sunsetting/ \
+    		--env GO111MODULE=on \
+    		--workdir /go/src/github.com/supergiant/analyze-plugin-sunsetting/ \
+    		golang:1.11.8 \
+    		sh -c "go test -mod=vendor -count=1 -tags=dev -race ./..."

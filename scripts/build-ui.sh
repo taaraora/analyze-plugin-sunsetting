@@ -7,8 +7,8 @@ set -o pipefail
 
 BUILD_DATE=${BUILD_DATE:-$( date +%Y%m%d-%H:%M:%S )}
 PLUGIN_NAME="analyze-plugin-sunsetting"
-PLUGIN_VERSION=$( git describe --tags --dirty --abbrev=14 | sed -E 's/-([0-9]+)-g/.\1+/' )
+PLUGIN_VERSION=$( git describe --tags --dirty --abbrev=14 | sed -E 's/-([0-9]+)-g/.\1+/' || echo 'unknown')
 
-//blabala popate environment.ts
+#blabala popate environment.ts
 
-cd ./ui && npm run build:webcomponents
+cd ./ui && npm i && npm run build:webcomponents

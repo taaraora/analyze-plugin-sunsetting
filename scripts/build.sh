@@ -13,7 +13,7 @@ REPO_PATH="github.com/supergiant/analyze-plugin-sunsetting"
 
 settings_component_entry_point="/settings/analyze-plugin-sunsetting-settings-main.js"
 check_component_entry_point="/check/analyze-plugin-sunsetting-check-main.js"
-version=$( git describe --tags --dirty --abbrev=14 | sed -E 's/-([0-9]+)-g/.\1+/' )
+version=$( git describe --tags --dirty --abbrev=14 | sed -E 's/-([0-9]+)-g/.\1+/' || echo 'unknown')
 revision=$( git rev-parse --short HEAD 2> /dev/null || echo 'unknown' )
 branch=$( git rev-parse --abbrev-ref HEAD 2> /dev/null || echo 'unknown' )
 go_version=$( go version | sed -e 's/^[^0-9.]*\([0-9.]*\).*/\1/' )
@@ -31,4 +31,4 @@ ldflags="
 echo "Building $PLUGIN_NAME with -ldflags $ldflags"
 
 
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o ./dist/analyze-sunsetting -a -ldflags "${ldflags}" ./cmd/analyze-sunsetting
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -mod=vendor -o ./dist/analyze-sunsetting -a -ldflags "${ldflags}" ./cmd/analyze-sunsetting
