@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net"
@@ -9,15 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/supergiant/analyze-plugin-sunsetting/pkg/info"
-
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 	"github.com/supergiant/analyze/pkg/plugin/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -25,34 +23,28 @@ import (
 
 	"github.com/supergiant/analyze-plugin-sunsetting/asset"
 	"github.com/supergiant/analyze-plugin-sunsetting/cmd/analyze-sunsetting/server"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/info"
 )
 
 func main() {
-	command := &cobra.Command{
-		Use:          "analyze-sunsetting",
-		Short:        "analyze-sunsetting plugin",
-		RunE:         runCommand,
-		SilenceUsage: true,
-	}
-
-	command.PersistentFlags().StringP(
+	flagSet := flag.NewFlagSet(os.Args[0], flag.PanicOnError)
+	var grpcAPIPort = flagSet.StringP(
 		"grpc-api-port",
 		"g",
 		"9999", //TODO: make it configurable using configmap
 		"tcp port where sunsetting plugin grpc server is serving")
 
-	command.PersistentFlags().StringP(
+	var restAPIPort = flagSet.StringP(
 		"rest-api-port",
 		"r",
 		"80", //TODO: make it configurable using configmap
 		"tcp port where sunsetting plugin http server is serving")
 
-	if err := command.Execute(); err != nil {
-		log.Fatalf("\n%v\n", err)
+	err := flagSet.Parse(os.Args[1:])
+	if err != nil {
+		log.Fatalf("unable to parse flags %v\n", err)
 	}
-}
 
-func runCommand(cmd *cobra.Command, _ []string) error {
 	logger := &logrus.Logger{
 		Out: os.Stdout,
 		Formatter: &logrus.TextFormatter{
@@ -68,16 +60,6 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 	var mainLogger = logger.WithField("app", "sunsetting-plugin")
 
 	mainLogger.Infof("%+v", info.Info())
-
-	grpcAPIPort, err := cmd.Flags().GetString("grpc-api-port")
-	if err != nil {
-		return errors.Wrap(err, "unable to get config flag grpc-api-port")
-	}
-
-	restAPIPort, err := cmd.Flags().GetString("rest-api-port")
-	if err != nil {
-		return errors.Wrap(err, "unable to get config flag rest-api-port")
-	}
 
 	mainLogger.Infof("grpc-api-port: %v, rest-api-port: %v", grpcAPIPort, restAPIPort)
 
@@ -101,12 +83,13 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 
 	http.HandleFunc("/", handler)
 	go func() {
-		mainLogger.Fatal(http.ListenAndServe(":"+restAPIPort, nil))
+		mainLogger.Info("starting api server")
+		mainLogger.Fatal(http.ListenAndServe(":"+*restAPIPort, nil))
 	}()
 
-	listener, err := net.Listen("tcp", ":"+grpcAPIPort)
+	listener, err := net.Listen("tcp", ":"+*grpcAPIPort)
 	if err != nil {
-		return err
+		mainLogger.Fatal("can't start tcp listener for gRPC server")
 	}
 
 	var grpcLogger = mainLogger.WithField("component", "grpc_server")
@@ -129,6 +112,15 @@ func runCommand(cmd *cobra.Command, _ []string) error {
 	reflection.Register(grpcServer)
 	var pluginService = server.NewServer(mainLogger.WithField("component", "plugin_server"))
 	proto.RegisterPluginServer(grpcServer, pluginService)
+	// TODO: think how to make this defer correctly
+	defer func() {
+		_, err := pluginService.Stop(context.Background(), nil)
+		if err != nil {
+			mainLogger.Errorf("got error at plugin service stop: %+v", err)
+		}
+	}()
+	defer grpcServer.GracefulStop()
 
-	return grpcServer.Serve(listener)
+	mainLogger.Info("starting gRPC server")
+	mainLogger.Fatal(grpcServer.Serve(listener))
 }

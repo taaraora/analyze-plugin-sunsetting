@@ -132,6 +132,40 @@ func (c *Client) GetNodeResourceRequirements() (map[string]*NodeResourceRequirem
 	return instanceEntries, nil
 }
 
+func (c *Client) GetRandomMaster() (*corev1api.Node, error) {
+
+	nodes, err := c.clientSet.CoreV1().Nodes().List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var randomMasterNode *corev1api.Node
+
+	for nodeIndex, node := range nodes.Items {
+		if node.Status.Phase != corev1api.NodeRunning {
+			continue
+		}
+
+		for label, value := range node.GetLabels() {
+			if label == "node-role.kubernetes.io/master" || (label == "kubernetes.io/role" && value == "master") {
+				randomMasterNode = &nodes.Items[nodeIndex]
+				break
+			}
+		}
+
+		if randomMasterNode != nil {
+			break
+		}
+	}
+
+	if randomMasterNode == nil {
+		c.logger.Errorf("nodes: %+v", nodes.Items)
+		return nil, errors.New("can't identify master node, check that label node-role.kubernetes.io/master is set")
+	}
+
+	return randomMasterNode, nil
+}
+
 func getNodeResourceRequirements(node corev1api.Node, pods []corev1api.Pod) (*NodeResourceRequirements, error) {
 	var nodeResourceRequirements = &NodeResourceRequirements{
 		Name:                     node.Name,

@@ -5,10 +5,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pborman/uuid"
+	"go.etcd.io/etcd/clientv3"
+
 	"github.com/supergiant/analyze-plugin-sunsetting/pkg/cloudprovider"
 	"github.com/supergiant/analyze-plugin-sunsetting/pkg/cloudprovider/aws"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/info"
 	"github.com/supergiant/analyze-plugin-sunsetting/pkg/kube"
 	"github.com/supergiant/analyze-plugin-sunsetting/pkg/nodeagent"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/reshuffle"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/storage"
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/storage/etcd"
 	"github.com/supergiant/analyze-plugin-sunsetting/pkg/sunsetting"
 
 	"github.com/golang/protobuf/ptypes"
@@ -29,6 +36,13 @@ type server struct {
 	kubeClient             *kube.Client
 	computeInstancesPrices map[string][]cloudprovider.ProductPrice
 	logger                 logrus.FieldLogger
+	etcdStorage            storage.Interface
+}
+
+type msg []byte
+
+func (m msg) Payload() []byte {
+	return m
 }
 
 func checkResult() *proto.CheckResult {
@@ -154,11 +168,14 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 		instancesToSunset = sunsetting.CheckAllPodsAtATime(unsortedEntries)
 	}
 
+	workerNodesToSunset := make([]string, 0)
+
 	// mark nodes selected node with IsRecommendedToSunset == true
 	for i := range result {
 		for _, entryToSunset := range instancesToSunset {
 			if entryToSunset.CloudProvider.InstanceID == result[i].CloudProvider.InstanceID {
 				result[i].WorkerNode.IsRecommendedToSunset = true
+				workerNodesToSunset = append(workerNodesToSunset, entryToSunset.CloudProvider.InstanceID)
 			}
 		}
 	}
@@ -175,6 +192,41 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 		checkResult.Status = proto.CheckStatus_GREEN
 	} else {
 		checkResult.Status = proto.CheckStatus_YELLOW
+	}
+
+	master, err := u.kubeClient.GetRandomMaster()
+	if err != nil {
+		u.logger.Errorf("can't find master: %+v", err)
+	}
+
+	if master != nil {
+		rc := reshuffle.ReshufflePodsCommand{
+			ClusterID:      master.Status.NodeInfo.MachineID,
+			WorkerNodesIDs: workerNodesToSunset,
+		}
+
+		b, err := json.Marshal(rc)
+		if err != nil {
+			u.logger.Errorf("can't marshal command: %+v", err)
+		}
+
+		// TODO: refactor this, to make it testable
+		re := reshuffle.CommandEnvelope{
+			ID:       uuid.New(),
+			Type:     reshuffle.ReshufflePodsCommandType,
+			SourceID: master.Name,
+			Payload:  b,
+		}
+
+		r, err := json.Marshal(re)
+		if err != nil {
+			u.logger.Errorf("can't marshal envelope: %+v", err)
+		}
+
+		err = u.etcdStorage.Put(context.Background(), storage.NotificationsSubscriptionPrefix, master.Name, msg(r))
+		if err != nil {
+			u.logger.Errorf("can't write envelope: %+v", err)
+		}
 	}
 
 	return &proto.CheckResponse{Result: checkResult}, nil
@@ -211,6 +263,15 @@ func (u *server) Configure(ctx context.Context, pluginConfig *proto.PluginConfig
 
 	u.logger.Infof("got configuration %+v", *pluginConfig)
 
+	// TODO: make it correctly stopped when configure is invoked multiple times
+	u.etcdStorage, err = etcd.NewETCDStorage(
+		clientv3.Config{Endpoints: u.config.EtcdEndpoints},
+		u.logger.WithField("component", "etcdClient"),
+	)
+	if err != nil {
+		u.logger.Errorf("unable to create ETCD client, err: %v", err)
+	}
+
 	return &empty.Empty{}, nil
 }
 
@@ -219,11 +280,10 @@ func (u *server) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, 
 	defer u.logger.Info("info request done")
 
 	return &proto.PluginInfo{
-		Id:      "supergiant-underutilized-nodes-plugin",
-		Version: "v0.0.1",
-		Name:    "Underutilized nodes sunsetting plugin",
-		Description: "This plugin checks nodes using high intelligent Kelly's approach to find underutilized nodes," +
-			" than calculates how it is possible to fix that",
+		Id:          info.Info().ID,
+		Version:     info.Info().Version,
+		Name:        info.Info().Name,
+		Description: info.Info().Description,
 		DefaultConfig: &proto.PluginConfig{
 			ExecutionInterval: ptypes.DurationProto(2 * time.Minute),
 		},
@@ -231,5 +291,6 @@ func (u *server) Info(ctx context.Context, in *empty.Empty) (*proto.PluginInfo, 
 }
 
 func (u *server) Stop(ctx context.Context, in *proto.Stop_Request) (*proto.Stop_Response, error) {
-	panic("implement me")
+	err := u.etcdStorage.Close()
+	return &proto.Stop_Response{}, err
 }

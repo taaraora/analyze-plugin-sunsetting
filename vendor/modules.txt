@@ -123,6 +123,8 @@ github.com/golang/protobuf/ptypes/struct
 github.com/google/btree
 # github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
 github.com/google/gofuzz
+# github.com/google/uuid v1.1.0
+github.com/google/uuid
 # github.com/googleapis/gnostic v0.2.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
@@ -143,8 +145,6 @@ github.com/grpc-ecosystem/go-grpc-prometheus
 github.com/grpc-ecosystem/grpc-gateway/runtime
 github.com/grpc-ecosystem/grpc-gateway/utilities
 github.com/grpc-ecosystem/grpc-gateway/runtime/internal
-# github.com/inconshreveable/mousetrap v1.0.0
-github.com/inconshreveable/mousetrap
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
 # github.com/jonboulle/clockwork v0.1.0
@@ -159,6 +159,8 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
+# github.com/pborman/uuid v1.2.0
+github.com/pborman/uuid
 # github.com/pkg/errors v0.8.0
 github.com/pkg/errors
 # github.com/prometheus/client_golang v0.9.1
@@ -185,8 +187,6 @@ github.com/shurcooL/vfsgen
 github.com/sirupsen/logrus
 # github.com/soheilhy/cmux v0.1.4
 github.com/soheilhy/cmux
-# github.com/spf13/cobra v0.0.3
-github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.2
 github.com/spf13/pflag
 # github.com/supergiant/analyze v0.0.0-20190207203145-cd56047be724

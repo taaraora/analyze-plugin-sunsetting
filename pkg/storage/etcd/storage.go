@@ -135,7 +135,7 @@ func (e *Storage) WatchPrefix(ctx context.Context, prefix string) <-chan storage
 			}
 
 			if v.Canceled {
-				e.logger.Errorf("got watch canceled: %v", err)
+				e.logger.Error("got watch canceled")
 				we.eventType = storage.Error
 				we.err = err
 				results <- we

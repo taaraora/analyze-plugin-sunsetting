@@ -10,11 +10,12 @@ require (
 	github.com/golang/protobuf v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/kr/pretty v0.1.0 // indirect
+	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.8.0
 	github.com/shurcooL/httpfs v0.0.0-20171119174359-809beceb2371
 	github.com/shurcooL/vfsgen v0.0.0-20181020040650-a97a25d856ca
 	github.com/sirupsen/logrus v1.2.0
-	github.com/spf13/cobra v0.0.3
+	github.com/spf13/pflag v1.0.2
 	github.com/supergiant/analyze v0.0.0-20190207203145-cd56047be724
 	go.etcd.io/bbolt v1.3.2 // indirect
 	go.etcd.io/etcd v3.3.12+incompatible
