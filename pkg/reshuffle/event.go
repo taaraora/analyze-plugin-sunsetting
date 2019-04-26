@@ -24,4 +24,5 @@ type CommandEnvelope struct {
 type ReshufflePodsCommand struct {
 	ClusterID      string   `json:"clusterId,omitempty"`
 	WorkerNodesIDs []string `json:"workerNodesIds,omitempty"`
+	AZ             string   `json:"az,omitempty"`
 }

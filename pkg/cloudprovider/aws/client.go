@@ -194,3 +194,7 @@ func (c *Client) GetComputeInstances() (map[string]cloudprovider.ComputeInstance
 
 	return result, nil
 }
+
+func (c *Client) Region() string {
+	return c.region
+}

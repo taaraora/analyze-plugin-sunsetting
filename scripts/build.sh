@@ -20,13 +20,13 @@ go_version=$( go version | sed -e 's/^[^0-9.]*\([0-9.]*\).*/\1/' )
 
 
 ldflags="
-  -X ${REPO_PATH}/info.SettingsComponentEntryPoint=${settings_component_entry_point}
-  -X ${REPO_PATH}/info.CheckComponentEntryPoint=${check_component_entry_point}
-  -X ${REPO_PATH}/info.Version=${version}
-  -X ${REPO_PATH}/info.Revision=${revision}
-  -X ${REPO_PATH}/info.Branch=${branch}
-  -X ${REPO_PATH}/info.BuildDate=${BUILD_DATE}
-  -X ${REPO_PATH}/info.GoVersion=${go_version}"
+  -X ${REPO_PATH}/pkg/info.SettingsComponentEntryPoint=${settings_component_entry_point}
+  -X ${REPO_PATH}/pkg/info.CheckComponentEntryPoint=${check_component_entry_point}
+  -X ${REPO_PATH}/pkg/info.Version=${version}
+  -X ${REPO_PATH}/pkg/info.Revision=${revision}
+  -X ${REPO_PATH}/pkg/info.Branch=${branch}
+  -X ${REPO_PATH}/pkg/info.BuildDate=${BUILD_DATE}
+  -X ${REPO_PATH}/pkg/info.GoVersion=${go_version}"
 
 echo "Building $PLUGIN_NAME with -ldflags $ldflags"
 

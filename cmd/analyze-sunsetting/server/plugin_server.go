@@ -196,13 +196,15 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 
 	master, err := u.kubeClient.GetRandomMaster()
 	if err != nil {
-		u.logger.Errorf("can't find master: %+v", err)
+		u.logger.Errorf("can't find master: %v", err)
+		return &proto.CheckResponse{Result: checkResult}, nil
 	}
 
 	if master != nil {
 		rc := reshuffle.ReshufflePodsCommand{
 			ClusterID:      master.Status.NodeInfo.MachineID,
 			WorkerNodesIDs: workerNodesToSunset,
+			AZ:             u.awsClient.Region(),
 		}
 
 		b, err := json.Marshal(rc)
@@ -223,7 +225,7 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 			u.logger.Errorf("can't marshal envelope: %+v", err)
 		}
 
-		err = u.etcdStorage.Put(context.Background(), storage.NotificationsSubscriptionPrefix, master.Name, msg(r))
+		err = u.etcdStorage.Put(context.Background(), storage.ReshuffleCommandPrefix, master.Name, msg(r))
 		if err != nil {
 			u.logger.Errorf("can't write envelope: %+v", err)
 		}

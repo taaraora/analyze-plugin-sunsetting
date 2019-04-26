@@ -61,7 +61,7 @@ func main() {
 
 	mainLogger.Infof("%+v", info.Info())
 
-	mainLogger.Infof("grpc-api-port: %v, rest-api-port: %v", grpcAPIPort, restAPIPort)
+	mainLogger.Infof("grpc-api-port: %v, rest-api-port: %v", *grpcAPIPort, *restAPIPort)
 
 	//TODO: extract to separate component
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -81,10 +81,13 @@ func main() {
 		fs.ServeHTTP(w, r)
 	}
 
-	http.HandleFunc("/", handler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", handler)
+	srv := &http.Server{Addr: ":" + *restAPIPort, Handler: mux}
+
 	go func() {
 		mainLogger.Info("starting api server")
-		mainLogger.Fatal(http.ListenAndServe(":"+*restAPIPort, nil))
+		mainLogger.Fatal(srv.ListenAndServe())
 	}()
 
 	listener, err := net.Listen("tcp", ":"+*grpcAPIPort)

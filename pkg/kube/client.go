@@ -136,16 +136,12 @@ func (c *Client) GetRandomMaster() (*corev1api.Node, error) {
 
 	nodes, err := c.clientSet.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "failed to make request to kubernetes API")
 	}
 
 	var randomMasterNode *corev1api.Node
 
 	for nodeIndex, node := range nodes.Items {
-		if node.Status.Phase != corev1api.NodeRunning {
-			continue
-		}
-
 		for label, value := range node.GetLabels() {
 			if label == "node-role.kubernetes.io/master" || (label == "kubernetes.io/role" && value == "master") {
 				randomMasterNode = &nodes.Items[nodeIndex]
