@@ -1,0 +1,40 @@
+@import "~src/assets/styles/colors";
+
+.content {
+  display: flex;
+  justify-content: space-between;
+
+  .fields {
+
+    form {
+      display: inline-block;
+    }
+
+    .ex-interval {
+      margin-left: 24px;
+      width: 60px;
+    }
+
+    .warning {
+      color: red;
+      display: inline-block;
+      margin-left: 24px;
+    }
+
+    .mat-list-item {
+      font-family: courier;
+      font-size: 14px;
+    }
+  }
+
+  .actions-wrapper {
+    align-content: space-between;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+
+    button:last-child {
+      margin-top: 24px;
+    }
+  }
+}

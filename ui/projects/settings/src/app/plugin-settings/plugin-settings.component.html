@@ -1,10 +1,38 @@
-<!-- mock template -->
-<div *ngIf="pluginConfig">
-  <span>Execution Interval: </span>{{ pluginConfig.executionInterval }}
-</div>
-<div *ngIf="pluginConfig">
-  <p>Plugin Config:</p>
-  <div>
-    <p *ngFor="let e of pluginConfig.pluginSpecificConfig.Endpoints">{{ e }}</p>
-  </div>
-</div>
+<mat-accordion *ngIf="userPluginConfig">
+  <mat-expansion-panel (closed)="reset()">
+      <mat-expansion-panel-header>
+        <h1>SG Sunsetting</h1>
+      </mat-expansion-panel-header>
+
+      <div class="content">
+        <div class="fields">
+          <div class="field">
+            <span class="label">Execution Interval: </span>
+            <form [formGroup]="userPluginConfig">
+              <mat-form-field class="ex-interval">
+                <input matInput type="number" formControlName="executionInterval" (change)="diffConfigs()">
+                <mat-hint align="end">60-86400</mat-hint>
+              </mat-form-field>
+
+              <div class="warning" *ngIf="executionInterval.invalid">
+                <span>Execution Interval is invalid, please enter a value between 60 and 86400</span>
+              </div>
+            </form>
+          </div>
+
+          <div class="field">
+            <span class="label">etcd Endpoints: </span>
+            <mat-list role="list">
+              <mat-list-item role="listitem" *ngFor="let ep of defaultPluginConfig.etcdEndpoints">{{ ep }}</mat-list-item>
+            </mat-list>
+          </div>
+        </div>
+
+        <div class="actions-wrapper">
+          <button mat-raised-button color="primary" type="button" [disabled]="!enableSave" (click)="save()">Save</button>
+          <button mat-raised-button type="button" (click)="reset()">Reset</button>
+        </div>
+      </div>
+
+    </mat-expansion-panel>
+</mat-accordion>

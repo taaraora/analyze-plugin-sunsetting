@@ -9,7 +9,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   </head>
   <body>
     <analyze-plugin-sunsetting-settings-v2-0-0></analyze-plugin-sunsetting-settings-v2-0-0>
@@ -18,10 +18,9 @@
       setTimeout(() => {
         let el = document.querySelector('analyze-plugin-sunsetting-settings-v2-0-0');
         el.setAttribute('plugin-config', JSON.stringify({
+          etcdEndpoints: ['a7ad242ad61ac11e98661065a94252b0-2031200886.us-west-1.elb.amazonaws.com:2379'],
           executionInterval: 180,
-          pluginSpecificConfig: {
-            Endpoints: ["http://fake-qc-address/sunset?node1&node3"]
-          }
+          pluginSpecificConfig: {}
         }))
       }, 1000)
 
