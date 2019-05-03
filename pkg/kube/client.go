@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -16,8 +17,9 @@ import (
 )
 
 type Client struct {
-	clientSet *kubernetes.Clientset
-	logger    logrus.FieldLogger
+	clientSet    *kubernetes.Clientset
+	clientConfig *rest.Config
+	logger       logrus.FieldLogger
 }
 
 func NewKubeClient(logger logrus.FieldLogger) (*Client, error) {
@@ -33,8 +35,9 @@ func NewKubeClient(logger logrus.FieldLogger) (*Client, error) {
 	}
 
 	return &Client{
-		clientSet: clientSet,
-		logger:    logger,
+		clientSet:    clientSet,
+		clientConfig: config,
+		logger:       logger,
 	}, nil
 }
 
@@ -132,7 +135,7 @@ func (c *Client) GetNodeResourceRequirements() (map[string]*NodeResourceRequirem
 	return instanceEntries, nil
 }
 
-func (c *Client) GetRandomMaster() (*corev1api.Node, error) {
+func (c *Client) GetRandomMaster() (*Node, error) {
 
 	nodes, err := c.clientSet.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
@@ -159,7 +162,8 @@ func (c *Client) GetRandomMaster() (*corev1api.Node, error) {
 		return nil, errors.New("can't identify master node, check that label node-role.kubernetes.io/master is set")
 	}
 
-	return randomMasterNode, nil
+	n := Node(*randomMasterNode)
+	return &n, nil
 }
 
 func getNodeResourceRequirements(node corev1api.Node, pods []corev1api.Pod) (*NodeResourceRequirements, error) {
@@ -224,7 +228,7 @@ func getPodsRequestsAndLimits(podList []corev1api.Pod) []*PodResourceRequirement
 			PodName: p.Name,
 		}
 
-		podReqs, podLimits := PodRequestsAndLimits(&p)
+		podReqs, podLimits := podRequestsAndLimits(&p)
 		cpuReqs, cpuLimits := podReqs[corev1api.ResourceCPU], podLimits[corev1api.ResourceCPU]
 		memoryReqs, memoryLimits := podReqs[corev1api.ResourceMemory], podLimits[corev1api.ResourceMemory]
 		podRR.CPUReqs, podRR.CPULimits = cpuReqs.MilliValue(), cpuLimits.MilliValue()
@@ -236,9 +240,9 @@ func getPodsRequestsAndLimits(podList []corev1api.Pod) []*PodResourceRequirement
 	return result
 }
 
-// PodRequestsAndLimits returns a dictionary of all defined resources summed up for all
+// podRequestsAndLimits returns a dictionary of all defined resources summed up for all
 // containers of the pod.
-func PodRequestsAndLimits(pod *corev1api.Pod) (reqs corev1api.ResourceList, limits corev1api.ResourceList) {
+func podRequestsAndLimits(pod *corev1api.Pod) (reqs corev1api.ResourceList, limits corev1api.ResourceList) {
 	reqs, limits = corev1api.ResourceList{}, corev1api.ResourceList{}
 	for _, container := range pod.Spec.Containers {
 		addResourceList(reqs, container.Resources.Requests)
@@ -275,4 +279,31 @@ func maxResourceList(list, new corev1api.ResourceList) {
 			list[name] = *quantity.Copy()
 		}
 	}
+}
+
+func (c *Client) Config() ClientConfig {
+	return ClientConfig{
+		Host:        os.Getenv("KUBERNETES_SERVICE_HOST"),
+		BearerToken: c.clientConfig.BearerToken,
+		Port:        os.Getenv("KUBERNETES_SERVICE_PORT"),
+	}
+}
+
+func (c *Client) GetService(serviceName, namespace string, labelsSet map[string]string) (corev1api.Service, error) {
+	var labelsSelector = labels.SelectorFromSet(labels.Set(labelsSet))
+	var options = metav1.ListOptions{
+		LabelSelector: labelsSelector.String(),
+		FieldSelector: fields.OneTermEqualSelector("metadata.name", serviceName).String(),
+	}
+
+	serviceList, err := c.clientSet.CoreV1().Services(namespace).List(options)
+	if err != nil {
+		return corev1api.Service{}, errors.Wrap(err, "can't list services")
+	}
+
+	if len(serviceList.Items) != 1 {
+		return corev1api.Service{}, errors.Wrap(err, "multiple services are deployed")
+	}
+
+	return serviceList.Items[0], nil
 }

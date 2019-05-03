@@ -2,7 +2,9 @@ package kube
 
 import (
 	"encoding/json"
+	"strings"
 
+	corev1api "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
@@ -13,6 +15,14 @@ func GetNodeAgentLabelsSet() labels.Set {
 		"app.kubernetes.io/component": "nodeagent",
 	}
 }
+
+type ClientConfig struct {
+	Host        string `json:"host"`
+	Port        string `json:"port"`
+	BearerToken string `json:"bearerToken"`
+}
+
+type Node corev1api.Node
 
 type NodeResourceRequirements struct {
 	Name                  string
@@ -132,4 +142,24 @@ func (n *NodeResourceRequirements) MarshalJSON() ([]byte, error) {
 
 func (n *NodeResourceRequirements) IPAddress() string {
 	return n.internalIPAddress
+}
+
+func (n *Node) NetworkAddress() string {
+	var nodeExternalDNS string
+	var nodeExternalIP string
+
+	for i := range n.Status.Addresses {
+		switch n.Status.Addresses[i].Type {
+		case corev1api.NodeExternalDNS:
+			nodeExternalDNS = n.Status.Addresses[i].Address
+		case corev1api.NodeExternalIP:
+			nodeExternalIP = n.Status.Addresses[i].Address
+		}
+	}
+
+	if strings.TrimSpace(nodeExternalDNS) != "" {
+		return nodeExternalDNS
+	}
+
+	return nodeExternalIP
 }

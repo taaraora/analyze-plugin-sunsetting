@@ -162,12 +162,7 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 		})
 	}
 
-	//TODO: double check logic, is it really needed?
 	var instancesToSunset = sunsetting.CheckEachPodOneByOne(unsortedEntries)
-	if len(instancesToSunset) == 0 {
-		instancesToSunset = sunsetting.CheckAllPodsAtATime(unsortedEntries)
-	}
-
 	workerNodesToSunset := make([]string, 0)
 
 	// mark nodes selected node with IsRecommendedToSunset == true
@@ -200,35 +195,53 @@ func (u *server) Check(ctx context.Context, in *proto.CheckRequest) (*proto.Chec
 		return &proto.CheckResponse{Result: checkResult}, nil
 	}
 
-	if master != nil {
-		rc := reshuffle.ReshufflePodsCommand{
-			ClusterID:      master.Status.NodeInfo.MachineID,
-			WorkerNodesIDs: workerNodesToSunset,
-			AZ:             u.awsClient.Region(),
-		}
+	kubeService, err := u.kubeClient.GetService("kubernetes", "", nil)
+	if err != nil {
+		u.logger.Errorf("can't find kubeService: %v", err)
+		return &proto.CheckResponse{Result: checkResult}, nil
+	}
 
-		b, err := json.Marshal(rc)
-		if err != nil {
-			u.logger.Errorf("can't marshal command: %+v", err)
-		}
+	if len(kubeService.Spec.Ports) != 1 {
+		u.logger.Errorf("can't find kubeService: %v", err)
+		return &proto.CheckResponse{Result: checkResult}, nil
+	}
 
-		// TODO: refactor this, to make it testable
-		re := reshuffle.CommandEnvelope{
-			ID:       uuid.New(),
-			Type:     reshuffle.ReshufflePodsCommandType,
-			SourceID: master.Name,
-			Payload:  b,
-		}
+	config := u.kubeClient.Config()
+	// replace with external host and port
+	config.Host = master.NetworkAddress()
+	// TODO just hack for current clusters config
+	config.Port = kubeService.Spec.Ports[0].TargetPort.String()
 
-		r, err := json.Marshal(re)
-		if err != nil {
-			u.logger.Errorf("can't marshal envelope: %+v", err)
-		}
+	rc := reshuffle.ReshufflePodsCommand{
+		ClusterID:      master.Status.NodeInfo.MachineID,
+		WorkerNodesIDs: workerNodesToSunset,
+		AZ:             u.awsClient.Region(),
+		ClientConfig:   config,
+	}
 
-		err = u.etcdStorage.Put(context.Background(), storage.ReshuffleCommandPrefix, master.Name, msg(r))
-		if err != nil {
-			u.logger.Errorf("can't write envelope: %+v", err)
-		}
+	b, err = json.Marshal(rc)
+	if err != nil {
+		u.logger.Errorf("can't marshal command: %+v", err)
+		return &proto.CheckResponse{Result: checkResult}, nil
+	}
+
+	// TODO: refactor this, to make it testable
+	re := reshuffle.CommandEnvelope{
+		ID:       uuid.New(),
+		Type:     reshuffle.ReshufflePodsCommandType,
+		SourceID: master.NetworkAddress(),
+		Payload:  b,
+	}
+
+	r, err := json.Marshal(re)
+	if err != nil {
+		u.logger.Errorf("can't marshal envelope: %+v", err)
+		return &proto.CheckResponse{Result: checkResult}, nil
+	}
+
+	err = u.etcdStorage.Put(context.Background(), storage.ReshuffleCommandPrefix, master.NetworkAddress(), msg(r))
+	if err != nil {
+		u.logger.Errorf("can't write envelope: %+v", err)
 	}
 
 	return &proto.CheckResponse{Result: checkResult}, nil

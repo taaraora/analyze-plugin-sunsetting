@@ -37,14 +37,16 @@ func CheckAllPodsAtATime(unsortedEntries []*InstanceEntry) []InstanceEntry {
 	return res
 }
 
+// CheckEachPodOneByOne returns instances which are possible to sunset.
 func CheckEachPodOneByOne(unsortedEntries []*InstanceEntry) []InstanceEntry {
 	var entriesByWastedRAM = NewSortedEntriesByWastedRAM(unsortedEntries)
 	var entriesByRequestedRAM = NewSortedEntriesByRequestedRAM(unsortedEntries)
 	var res = make([]InstanceEntry, 0)
 
-	for _, maxWastedRAMEntry := range entriesByWastedRAM {
+	for maxWastedRAMEntryIndex := range entriesByWastedRAM {
 		// sort pods in descending order by requested memory to more effective pods packing on nodes
-		podsRR := maxWastedRAMEntry.WorkerNode.PodsResourceRequirements
+		podsRR := entriesByWastedRAM[maxWastedRAMEntryIndex].WorkerNode.PodsResourceRequirements
+
 		sort.Slice(
 			podsRR,
 			func(i, j int) bool {
@@ -53,40 +55,46 @@ func CheckEachPodOneByOne(unsortedEntries []*InstanceEntry) []InstanceEntry {
 		)
 
 		// check
-		for i := 0; i < len(maxWastedRAMEntry.WorkerNode.PodsResourceRequirements); i++ {
-			var podRR = maxWastedRAMEntry.WorkerNode.PodsResourceRequirements[i]
+		for 0 < len(podsRR) {
+			var podRR = podsRR[0]
 			for _, maxRequestedRAMEntry := range entriesByRequestedRAM {
+				// we need not to move pod between the same node in different slices
+				if entriesByWastedRAM[maxWastedRAMEntryIndex].CloudProvider.InstanceID ==
+					maxRequestedRAMEntry.CloudProvider.InstanceID {
+					continue
+				}
 				if maxRequestedRAMEntry.RAMWasted() >= podRR.MemoryReqs &&
 					maxRequestedRAMEntry.CPUWasted() >= podRR.CPUReqs {
 					// we can move the pod
 					// delete it from  maxWastedRAMEntry
-					maxWastedRAMEntry.WorkerNode.PodsResourceRequirements = append(
-						maxWastedRAMEntry.WorkerNode.PodsResourceRequirements[:i],
-						maxWastedRAMEntry.WorkerNode.PodsResourceRequirements[i+1:]...,
-					)
+					podsRR = append(podsRR[:0], podsRR[1:]...)
 
-					maxWastedRAMEntry.WorkerNode.RefreshTotals()
+					entriesByWastedRAM[maxWastedRAMEntryIndex].WorkerNode.RefreshTotals()
 					//and add to maxRequestedRAMEntry
 					maxRequestedRAMEntry.WorkerNode.PodsResourceRequirements = append(
 						maxRequestedRAMEntry.WorkerNode.PodsResourceRequirements,
 						podRR,
 					)
 					maxRequestedRAMEntry.WorkerNode.RefreshTotals()
-					// if last pod was moved out exit from loop
-					// and basically because of i == o we also exit from outer loop
-					if len(maxWastedRAMEntry.WorkerNode.PodsResourceRequirements) == 0 {
-						break
-					}
-					// reset index to zero because after maxWastedRAMEntry.WorkerNode.PodsResourceRequirements slice
-					// modification we need to start from scratch
-					i = 0
-					continue
+
+					goto NextPod
 				}
 			}
+			goto NextNode
+		NextPod:
 		}
-		if len(maxWastedRAMEntry.WorkerNode.PodsResourceRequirements) == 0 {
-			res = append(res, *maxWastedRAMEntry)
+		if len(podsRR) == 0 {
+			res = append(res, *entriesByWastedRAM[maxWastedRAMEntryIndex])
+
+			for i, maxRequestedRAMEntry := range entriesByRequestedRAM {
+				if entriesByWastedRAM[maxWastedRAMEntryIndex].CloudProvider.InstanceID ==
+					maxRequestedRAMEntry.CloudProvider.InstanceID {
+					entriesByRequestedRAM = append(entriesByRequestedRAM[:i], entriesByRequestedRAM[i+1:]...)
+				}
+			}
+
 		}
+	NextNode:
 	}
 
 	return res

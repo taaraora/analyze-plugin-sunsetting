@@ -328,10 +328,6 @@ func fixtures() []*InstanceEntry {
 func TestWorkerNode_RefreshTotals_CorrectCounts(t *testing.T) {
 	var in = fixture()
 
-	for i := 0; i < 50; i++ {
-		in.WorkerNode.RefreshTotals()
-	}
-
 	if in.RAMRequested() != 536870912+536870912+536870912+1610612736+536870912+268435456+0 {
 		t.Fatal("RAMRequested returned incorrect value", in)
 	}

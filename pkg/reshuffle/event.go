@@ -2,7 +2,11 @@ package reshuffle
 
 // TODO: share this package with analyze sunsetting plugin and qbox portal
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/supergiant/analyze-plugin-sunsetting/pkg/kube"
+)
 
 type CommandType string
 
@@ -15,6 +19,7 @@ type CommandEnvelope struct {
 	// type of command
 	Type CommandType `json:"commandType,omitempty"`
 	// address of service which has produced the command
+	// it can be DNS name ir IP address of service
 	SourceID string `json:"sourceId,omitempty"`
 	// CommandType dependant payload
 	Payload json.RawMessage `json:"payload,omitempty"`
@@ -22,7 +27,8 @@ type CommandEnvelope struct {
 
 //nolint
 type ReshufflePodsCommand struct {
-	ClusterID      string   `json:"clusterId,omitempty"`
-	WorkerNodesIDs []string `json:"workerNodesIds,omitempty"`
-	AZ             string   `json:"az,omitempty"`
+	ClusterID      string            `json:"clusterId"`
+	WorkerNodesIDs []string          `json:"workerNodesIds"`
+	AZ             string            `json:"az"`
+	ClientConfig   kube.ClientConfig `json:"clientConfig"`
 }
