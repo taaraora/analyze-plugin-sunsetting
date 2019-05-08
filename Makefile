@@ -62,6 +62,10 @@ build:
 gen-assets:
 	./scripts/gen-assets.sh
 
+.PHONY: docker-push
+docker-push:
+	./scripts/docker_push.sh
+
 .PHONY: build-ui
 build-ui:
 	./scripts/build-ui.sh
