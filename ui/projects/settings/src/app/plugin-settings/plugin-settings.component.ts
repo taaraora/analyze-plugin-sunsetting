@@ -3,6 +3,7 @@
   import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
   import { Config } from '../models/models'
+  import { environment as env } from "../../../../../src/environments/environment"
 
 @Component({
   // selector: 'app-plugin-settings',
@@ -53,7 +54,11 @@ export class PluginSettingsComponent {
   public save() {
     this.defaultPluginConfig.executionInterval = this.userPluginConfig.value.executionInterval;
     this.el.nativeElement.dispatchEvent(new CustomEvent('ConfigUpdate', {
-      detail: this.defaultPluginConfig,
+      detail: {
+        // TODO: add pluginId prop and switch pluginName prop to display-able value
+        pluginId: env.pluginName,
+        config: this.defaultPluginConfig
+      },
       bubbles: true
     }))
   }
