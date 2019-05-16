@@ -19,17 +19,17 @@ Analyze sunsetting plugin is a micro-service which is made as Analyze plugin. It
 |ap-southeast-2a|i-0b68adff84f64a3dd|0.597				|7.668					|8.265			|3					|No						|
 
 
-####TL;DR 
+#### TL;DR 
 **[Get started here](https://supergiant.readme.io/docs/node-sunsetting-plugin)**
 
-##Implementations notes
+## Implementations notes
 1. Currently only AWS is supported
 2. Backend of a plugin is written in Golang and frontend is written in Angular and is packed as set of web components which are built-in in binary.
 3. On bootsrtaping time (right after installation) it fetches prices from AWS pricing API. This is single time operation.
 4. Works only when ProviderID is set.
 
 
-##Roadmap:
+## Roadmap:
 1. Current implementation do not assume that cluster shall survive single node failure.  
 2. Current implementation do not counts that some pods can't be rescheduled based on:  
 		* Taints and Tolerations  
