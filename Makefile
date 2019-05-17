@@ -51,9 +51,13 @@ lint: tools
 	@$(call LINT)
 
 
+.PHONY: test-cover
+test-cover:
+	go test -covermode=count -coverprofile=coverage.out -mod=vendor -tags=dev ./...
+
 .PHONY: test
 test:
-	go test -covermode=count -coverprofile=coverage.out -mod=vendor -tags=dev ./...
+	go test -mod=vendor -count=1 -tags=dev -race ./...
 
 .PHONY: tools
 tools:
@@ -106,8 +110,4 @@ test-windows:
     		--env GO111MODULE=on \
     		--workdir /go/src/github.com/supergiant/analyze-plugin-sunsetting/ \
     		golang:1.11.8 \
-    		sh -c "go test -covermode=count -coverprofile=coverage.out -mod=vendor -tags=dev ./..."
-
-.PHONY: dev-test
-dev-test:
-	go test -mod=vendor -count=1 -tags=dev -race ./...
+    		sh -c "go test -mod=vendor -count=1 -tags=dev -race ./..."
