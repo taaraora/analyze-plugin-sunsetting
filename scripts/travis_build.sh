@@ -23,7 +23,7 @@ if [[ "$TRAVIS_TAG" =~ ^v[0-9]. ]]; then
 	# Build Docker container
 	make build-image
 	# Push to Dockerhub
-	make push
+	make docker-push
 	# Push to releases page
 	make push-release
 # on an unstable branch, tests are run and the docker container is built and pushed.
