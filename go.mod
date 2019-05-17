@@ -19,7 +19,8 @@ require (
 	github.com/supergiant/analyze v0.0.0-20190207203145-cd56047be724
 	go.etcd.io/bbolt v1.3.2 // indirect
 	go.etcd.io/etcd v3.3.12+incompatible
-	golang.org/x/net v0.0.0-20190206173232-65e2d4e15006
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	golang.org/x/tools v0.0.0-20190516015132-d1a3278ee749 // indirect
 	google.golang.org/grpc v1.17.0
 	k8s.io/api v0.0.0-20190313235455-40a48860b5ab
 	k8s.io/apimachinery v0.0.0-20190313205120-d7deff9243b1

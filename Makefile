@@ -25,6 +25,20 @@ define TOOLS
         	echo "Installing linter... into ${GOPATH}/bin"; \
         	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b ${GOPATH}/bin  v1.16.0 ; \
         fi
+
+        if [ ! -x "`which goveralls 2>/dev/null`" ]; \
+        then \
+        	echo "goveralls not found."; \
+        	echo "Installing goveralls... into ${GOPATH}/bin"; \
+        	GO111MODULE=off go get -u github.com/mattn/goveralls ; \
+        fi
+
+        if [ ! -x "`which cover 2>/dev/null`" ]; \
+        then \
+        	echo "goveralls not found."; \
+        	echo "Installing cover... into ${GOPATH}/bin"; \
+        	GO111MODULE=off go get -u golang.org/x/tools/cmd/cover ; \
+        fi
 endef
 
 
@@ -39,7 +53,7 @@ lint: tools
 
 .PHONY: test
 test:
-	go test -mod=vendor -count=1 -tags=dev -race ./...
+	go test -covermode=count -coverprofile=coverage.out -mod=vendor -tags=dev ./...
 
 .PHONY: tools
 tools:
@@ -92,4 +106,8 @@ test-windows:
     		--env GO111MODULE=on \
     		--workdir /go/src/github.com/supergiant/analyze-plugin-sunsetting/ \
     		golang:1.11.8 \
-    		sh -c "go test -mod=vendor -count=1 -tags=dev -race ./..."
+    		sh -c "go test -covermode=count -coverprofile=coverage.out -mod=vendor -tags=dev ./..."
+
+.PHONY: dev-test
+dev-test:
+	go test -mod=vendor -count=1 -tags=dev -race ./...
