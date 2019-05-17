@@ -8,6 +8,8 @@ DOCKER_IMAGE_TAG := $(if ${TAG},${TAG},$(shell git describe --tags --always | tr
 
 GO_FILES := $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
+COVERALLS_TOKEN := $(if ${COVERALLS_TOKEN},${COVERALLS_TOKEN},empty)
+
 define LINT
 	@echo "Running code linters..."
 	golangci-lint run
@@ -25,6 +27,20 @@ define TOOLS
         	echo "Installing linter... into ${GOPATH}/bin"; \
         	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b ${GOPATH}/bin  v1.16.0 ; \
         fi
+
+        if [ ! -x "`which goveralls 2>/dev/null`" ]; \
+        then \
+        	echo "goveralls not found."; \
+        	echo "Installing goveralls... into ${GOPATH}/bin"; \
+        	GO111MODULE=off go get -u github.com/mattn/goveralls ; \
+        fi
+
+        if [ ! -x "`which cover 2>/dev/null`" ]; \
+        then \
+        	echo "goveralls not found."; \
+        	echo "Installing cover... into ${GOPATH}/bin"; \
+        	GO111MODULE=off go get -u golang.org/x/tools/cmd/cover ; \
+        fi
 endef
 
 
@@ -36,6 +52,13 @@ default: lint
 lint: tools
 	@$(call LINT)
 
+
+.PHONY: test-cover
+test-cover:
+	go test -covermode=count -coverprofile=coverage.out -mod=vendor -tags=dev ./...
+ifneq ($(COVERALLS_TOKEN),empty)
+	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
+endif
 
 .PHONY: test
 test:

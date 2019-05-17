@@ -2,7 +2,7 @@
 ![sg_analyze_light](https://user-images.githubusercontent.com/2936828/48772107-0b305300-eccc-11e8-8c72-4bcbd737226b.png)
 
 [![Coverage Status](https://coveralls.io/repos/github/supergiant/analyze-plugin-sunsetting/badge.svg?branch=master)](https://coveralls.io/github/supergiant/analyze-plugin-sunsetting?branch=master)
-[![Build Status](https://travis-ci.com/supergiant/analyze-plugin-sunsetting.svg?branch=master)](https://travis-ci.com/supergiant/analyze-plugin-sunsetting)
+[![Build Status](https://travis-ci.org/supergiant/analyze-plugin-sunsetting.svg?branch=master)](https://travis-ci.org/supergiant/analyze-plugin-sunsetting)
 [![License Apache 2](https://img.shields.io/badge/License-Apache2-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Go Report Card](https://goreportcard.com/badge/github.com/supergiant/analyze-plugin-sunsetting)](https://goreportcard.com/report/github.com/supergiant/analyze-plugin-sunsetting)
 

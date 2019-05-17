@@ -6,3 +6,4 @@ asset/check/*
 asset/settings/*
 !asset/settings/.gitkeep
 asset/assets_vfsdata.go
+coverage.out
