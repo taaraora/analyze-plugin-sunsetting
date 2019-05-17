@@ -21,6 +21,7 @@ go_import_path: github.com/supergiant/analyze-plugin-sunsetting
 
 install:
 - make tools
+- go get github.com/tcnksm/ghr
 
 script:
 - source ./scripts/travis_build.sh
